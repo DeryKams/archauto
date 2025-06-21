@@ -4,7 +4,7 @@ exec > >(tee -a "outputarchauto.log") 2>&1
 journalctl --vacuum-size=30M
 journalctl --verify
 systemctl restart systemd-journald
-
+#gitpush
 y="yes"
 yay="yes"
 file="/etc/systemd/journald.conf"
