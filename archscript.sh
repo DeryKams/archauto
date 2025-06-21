@@ -61,7 +61,6 @@ systemctl enable --now acpid.service
 systemctl enable --now sddm.service
 systemctl enable --now NetworkManager.service
 systemctl enable --now bluetooth.service
-systemctl enable --now acpid.service
 
 # select sshEnable in "Yes" "No"; do 
 # case $sshEnable in
@@ -341,8 +340,7 @@ if [ "$nohang" = "yes" ]; then
 sudo -u "$SUDO_USER" bash -c '
 cd ~
 yay -S --needed  --noconfirm nohang-git
-yay -Yc --noconfirm
-'
+yay -Yc --noconfirm'
 cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
 systemctl enable --now nohang-desktop
 echo "nohang status:"
@@ -372,8 +370,7 @@ sudo -u "$SUDO_USER" bash -c "
 yay -S --needed --noconfirm aur/stacer-bin
 yay -S --needed --noconfirm aur/xdman
 yay -S --needed --noconfirm aur/firefox-extension-xdman8-browser-monitor-bin
-yay -Yc --noconfirm
-"
+yay -Yc --noconfirm"
 else
 echo "stacer и xdman были пропщуены"
 fi
@@ -382,8 +379,7 @@ fi
 if [ "$irqbalance" = "yes" ]; then
 sudo -u "$SUDO_USER" bash -c "
 yay -S --needed --noconfirm extra/irqbalance
-yay -Yc --noconfirm
-"
+yay -Yc --noconfirm"
 systemctl enable --now irqbalance
 echo "Статус irqbalance:"
 systemctl status irqbalance
