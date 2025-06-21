@@ -4,6 +4,7 @@ journalctl --vacuum-size=30M
 journalctl --verify
 sudo systemctl restart systemd-journald
 
+
 nano /etc/systemd/journald.conf
 systemmaxuse=50M
 systemmaxfilesize=40M

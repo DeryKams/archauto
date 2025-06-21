@@ -63,35 +63,35 @@ systemctl enable --now NetworkManager.service
 systemctl enable --now bluetooth.service
 systemctl enable --now acpid.service
 
-select sshEnable in "Yes" "No"; do 
-case $sshEnable in
-    Yes )
+# select sshEnable in "Yes" "No"; do 
+# case $sshEnable in
+#     Yes )
 
-systemctl enable --now sshd.service
-systemctl status sshd
-;;
-break
-    No )
-echo "SSH service not enabled."
-;;
-break
+# systemctl enable --now sshd.service
+# systemctl status sshd
+# ;;
+# break
+#     No )
+# echo "SSH service not enabled."
+# ;;
+# break
 
-    * )
-echo "Invalid option. Please select Yes or No."
-;;
-esac 
-done
+#     * )
+# echo "Invalid option. Please select Yes or No."
+# ;;
+# esac 
+# done
 
-if [ -f /etc/ssh/sshd_config ]; then
+# if [ -f /etc/ssh/sshd_config ]; then
 
-sed -i 's/#Port 22/#Port 2414/' /etc/ssh/sshd_config
-sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-sudo systemctl restart sshd
-ip a
-else 
-echo "sshd_config not found, please check your SSH installation."
+# sed -i 's/#Port 22/#Port 2414/' /etc/ssh/sshd_config
+# sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+# sudo systemctl restart sshd
+# ip a
+# else 
+# echo "sshd_config not found, please check your SSH installation."
 
-fi
+# fi
 
 
 
@@ -267,9 +267,9 @@ if [ "$y" == "yes" ]; then
 
 echo "Обновление микрокода"
 pacman -S --noconfirm amd-ucode
-grub-mkconfig -o /boot/grub/grub.cfg
 mkinitcpio -P
 grub-mkconfig -o /boot/grub/grub.cfg
+
 #Нужно уточнить, нужно ли проводить процедуру после перекомпиляции ядра
 else
 echo "Микрокод пропущен"
