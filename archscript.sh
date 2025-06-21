@@ -1,4 +1,5 @@
 #!/bin/bash
+exec > >(tee -a "outputarchauto.log") 2>&1
 
 journalctl --vacuum-size=30M
 journalctl --verify
@@ -41,21 +42,7 @@ USER_RUNTIME_DIR="/run/user/$(id -u $user_nosudo)"
 
 
 
-sudo pacman -S --needed --noconfirm man-db xorg xorg-xinit xf86-video-amdgpu plasma-meta konsole dolphin sddm \
-             ttf-dejavu ttf-liberation noto-fonts \
-             pipewire pipewire-pulse wireplumber \
-             amd-ucode power-profiles-daemon acpi acpid \
-             plasma-nm networkmanager-openvpn \
-             mesa mesa-vdpau libva-mesa-driver vulkan-radeon \
-             ark spectacle gwenview kate kscreen kdeconnect \
-             gvfs gvfs-mtp gvfs-gphoto2 gvfs-afc ntfs-3g exfatprogs \
-             bluez bluez-utils xdg-user-dirs xdg-utils plasma-wayland-session \
-             plasma-nano plasma-browser-integration plasma-thunderbolt plasma-zeroconf \
-                plasma-disks plasma-systemmonitor plasma-pa \ 
-                openssh
-
-
-
+sudo pacman -S --needed --noconfirm man-db xorg xorg-xinit xf86-video-amdgpu plasma-meta konsole dolphin sddm ttf-dejavu ttf-liberation noto-fonts pipewire pipewire-pulse wireplumber amd-ucode power-profiles-daemon acpi acpid plasma-nm networkmanager-openvpn mesa mesa-vdpau libva-mesa-driver vulkan-radeon ark spectacle gwenview kate kscreen kdeconnect gvfs gvfs-mtp gvfs-gphoto2 gvfs-afc ntfs-3g exfatprogs bluez bluez-utils xdg-user-dirs xdg-utils plasma-wayland-session plasma-nano plasma-browser-integration plasma-thunderbolt plasma-zeroconf plasma-disks plasma-systemmonitor plasma-pa openssh
 
 systemctl enable --now acpid.service
 systemctl enable --now sddm.service
