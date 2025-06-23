@@ -1,6 +1,39 @@
 #!/bin/bash
 exec > >(tee -a "outputarchauto.log") 2>&1
 
+#Установка Arch Linux
+
+#Установка видеодрайверов
+pacman -S --needed --noconfirm xf86-video-ati
+
+# Установка шрифтов 
+pacman -S --needed --noconfirm ttf-freefont noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-freefont ttf-fira-code ttf-jetbrains-mono ttf-hack terminus-font ttf-jetbrains-mono ttf-firacode-nerd
+
+#Установите Xorg:
+pacman -S --needed --noconfirm xorg xorg-xinit xorg-apps xorg-server mesa-libgl 
+
+# Установите KDE Plasma:
+pacman -S --needed --noconfirm plasma plasma-wayland-session egl-wayland sddm sddm-kcm packagekit-qt5 kde-applications network-manager-applet system-settings git wget
+pacman -S --needed --noconfirm  konsole dolphin ark kalk kate kclock kcolorchooser gwenview spectacle partitionmanager plasma-systemmonitor vlc firefox ffmpegthumbs xdg-desktop-portal-gtk xwaylandvideobridge qt6-imageformats kimageformats kdialog
+
+#Включите SDDM:
+systemctl enable sddm
+systemctl status sddm
+#запускаем оболочку
+systemctl start sddm
+
+#аплете отображения сетевых подключений
+systemctl enable NetworkManager
+systemctl start NetworkManager
+systemctl status NetworkManager
+
+#протокол динамической конфигурации узла
+systemctl enable dhcpd
+systemctl start dhcpd
+systemctl status dhcpd
+
+
+
 journalctl --vacuum-size=30M
 journalctl --verify
 systemctl restart systemd-journald

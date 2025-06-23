@@ -1,3 +1,35 @@
+#Установка Arch Linux
+
+#Установка видеодрайверов
+sudo pacman -S xf86-video-ati
+
+# Установка шрифтов 
+pacman -S --needed ttf-freefont noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-freefont ttf-fira-code ttf-jetbrains-mono ttf-hack terminus-font ttf-jetbrains-mono ttf-firacode-nerd
+
+#Установите Xorg:
+sudo pacman -S xorg xorg-xinit xorg-apps xorg-server mesa-libgl 
+
+# Установите KDE Plasma:
+plasma plasma-wayland-session egl-wayland sddm sddm-kcm packagekit-qt5 kde-applications network-manager-applet system-settings git wget
+pacman -S  konsole dolphin ark kalk kate kclock kcolorchooser gwenview spectacle partitionmanager plasma-systemmonitor vlc firefox ffmpegthumbs xdg-desktop-portal-gtk xwaylandvideobridge qt6-imageformats kimageformats kdialog
+
+#Включите SDDM:
+sudo systemctl enable sddm
+sudo systemctl status sddm
+#запускаем оболочку
+sudo systemctl start sddm
+
+#аплете отображения сетевых подключений
+sudo systemctl enable NetworkManager
+sudo systemctl start NetworkManager
+sudo systemctl status NetworkManager
+
+#протокол динамической конфигурации узла
+sudo systemctl enable dhcpd
+sudo systemctl start dhcpd
+sudo systemctl status dhcpd
+
+
 
 #Уменьшаем журнал
 journalctl --vacuum-size=30M  
@@ -46,6 +78,20 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg
 #Добавление локалей
 sudo nano /etc/locale.gen          # Редактирование локалей
 sudo locale-gen                    # Генерация локалей
+
+# Добавление языков
+# Отредактируйте файл локалей:
+# nano /etc/locale.gen
+# Раскомментируйте или добавьте строки:
+# en_US.UTF-8 UTF-8
+# ru_RU.UTF-8 UTF-8
+# Генерация локалей
+# Сгенерируйте локали:
+# locale-gen
+# Установка языка системы
+# Установите язык системы:
+# echo "LANG=en_US.UTF-8" > /etc/locale.conf
+
 
 ###################
 # Клонируем репозиторий yay
