@@ -1,4 +1,8 @@
 #Установка Arch Linux
+#git remote add origin https://github.com/DeryKams/archauto.git
+#git remote -v
+#git commit -m "commit1"
+#git push
 
 #Установка видеодрайверов
 sudo pacman -S xf86-video-ati
