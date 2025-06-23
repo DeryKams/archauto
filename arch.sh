@@ -8,6 +8,8 @@
 
 #Установка видеодрайверов
 pacman -S --needed --noconfirm xf86-video-amdgpu vulkan-radeon libva-mesa-driver mesa
+# Для Intel: sudo pacman -S xf86-video-intel
+# Для NVIDIA: sudo pacman -S nvidia nvidia-utils
 
 # Установка шрифтов 
 pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols
