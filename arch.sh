@@ -4,34 +4,43 @@
 #git commit -m "commit1"
 #git push
 
+#Установка Arch Linux
+
 #Установка видеодрайверов
-sudo pacman -S xf86-video-ati
+pacman -S --needed --noconfirm xf86-video-amdgpu vulkan-radeon libva-mesa-driver mesa
 
 # Установка шрифтов 
-pacman -S --needed ttf-freefont noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-freefont ttf-fira-code ttf-jetbrains-mono ttf-hack terminus-font ttf-jetbrains-mono ttf-firacode-nerd
+pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols
 
 #Установите Xorg:
-sudo pacman -S xorg xorg-xinit xorg-apps xorg-server mesa-libgl 
+pacman -S --needed --noconfirm xorg xorg-xinit xorg-apps xorg-server mesa-libgl xorg-server-xwayland wayland libxkbcommon
 
 # Установите KDE Plasma:
-plasma plasma-wayland-session egl-wayland sddm sddm-kcm packagekit-qt5 kde-applications network-manager-applet system-settings git wget
-pacman -S  konsole dolphin ark kalk kate kclock kcolorchooser gwenview spectacle partitionmanager plasma-systemmonitor vlc firefox ffmpegthumbs xdg-desktop-portal-gtk xwaylandvideobridge qt6-imageformats kimageformats kdialog
+pacman -S --needed --noconfirm plasma plasma-wayland-session egl-wayland sddm sddm-kcm packagekit-qt5 kde-applications network-manager-applet system-settings git wget
+pacman -S --needed --noconfirm  konsole dolphin ark kalk kate kclock kcolorchooser gwenview spectacle partitionmanager plasma-systemmonitor vlc firefox ffmpegthumbs xdg-desktop-portal-gtk xwaylandvideobridge qt6-imageformats kimageformats kdialog
+
+#pipwire
+pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-alsa wireplumber pipewire-jack pipewire-audio pavucontrol helvum qpwgraph 
+
+systemctl enable --now pipewire pipewire-pulse wireplumber
 
 #Включите SDDM:
-sudo systemctl enable sddm
-sudo systemctl status sddm
+systemctl enable sddm
+systemctl status sddm
 #запускаем оболочку
-sudo systemctl start sddm
+systemctl start sddm
 
 #аплете отображения сетевых подключений
-sudo systemctl enable NetworkManager
-sudo systemctl start NetworkManager
-sudo systemctl status NetworkManager
+systemctl enable NetworkManager
+systemctl start NetworkManager
+systemctl status NetworkManager
+systemctl enable pipewire pipewire-pulse
 
 #протокол динамической конфигурации узла
-sudo systemctl enable dhcpd
-sudo systemctl start dhcpd
-sudo systemctl status dhcpd
+systemctl enable dhcpd
+systemctl start dhcpd
+systemctl status dhcpd
+
 
 
 
