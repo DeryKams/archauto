@@ -1,55 +1,32 @@
 # Цвета и элементы prompt
 PS1='\[\e[1;33m\]\t \[\e[1;36m\]\w \[\e[1;35m\]\$ \[\e[0m\]'
 
+export HISTCONTROL=ignorespace
+
+export LS_COLORS='di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
+
+alias bashrc='nano ~/.bashrc && bash -n ~/.bashrc &&  source ~/.bashrc'
+
 # Цвета для ls
 alias ls='ls --color=auto'
 
-alias clr='clear'
-
-alias grep='grep --color=auto'
-
-alias bashrc='nano ~/.bashrc && source ~/.bashrc'
-
-# Генератор паролей
-genpass() {
-    # Устанавливаем длину пароля (по умолчанию 8)
-    local length="${1:-8}"
-
-    # Проверка что аргумент - положительное число
-    if ! [[ "$length" =~ ^[0-9]+$ ]] || [ "$length" -lt 1 ]; then
-        echo -e "\033[1;31mОшибка:\033[0m длина должна быть числом > 0"
-        echo "Использование: genpass [длина]"
-        echo "Пример: genpass 12"
-        return 1
-    fi
-
-    # Набор символов
-    local chars='A-Za-z0-9!@#$%^&*()_+-=[]{}|;:,.<>?~'
-
-    # Генерация пароля
-    local password=$(tr -dc "$chars" < /dev/urandom | head -c "$length")
-
-    # Вывод пароля
-    echo -e "\033[1;32mПароль:\033[0m $password"
-
-    # Копирование в буфер обмена (для Termux)
-    if command -v termux-clipboard-set &>/dev/null; then
-        echo -n "$password" | termux-clipboard-set
-        echo -e "\033[1;36mСкопировано в буфер!\033[0m"
-    else
-        echo -e "\033[1;33mПодсказка:\033[0m установите Termux:API для копирования в буфер"
-        echo "pkg install termux-api"
-    fi
-}
-
 #Улучшенный ls
-alias ll='ls -alhF --color=auto --group-directories-first'
+alias ll='ls -alhF --color=auto --group-directories-first  --time-style=long-iso'
 # -a — показывает все файлы, включая скрытые (начинающиеся с .)
 # -l — подробный список (права, владелец, размер, дата изменения)
 # -h — человекочитаемые размеры (например, 1K вместо 1024)
 # -F — добавляет символы-индикаторы (/ для папок, * для исполняемых файлов)
 # --color=auto — раскрашивает вывод (папки синим, файлы белым и т. д.)
 # --group-directories-first — сначала папки, потом файлы
+
+alias clr='clear'
+
+alias grep='grep --color=auto -i -n -H'
+#-i — --color=auto — подсветка совпаденийигнорирование регистра
+alias hgrep='history | grep'
+
+grep -C 3 "error" file.log  # Покажет 3 строки до и после
+
 
 #fastping
 alias fastping='ping -c 5 -i 0.2'
@@ -85,3 +62,14 @@ alias mv='mv -i'
 # rm -i — спрашивает подтверждение перед удалением файла.
 # cp -i — спрашивает, если файл уже существует.
 # mv -i — аналогично, перед перезаписью.
+
+
+
+# Цвета для less/man
+export LESS_TERMCAP_mb=$'\E[1;31m'
+export LESS_TERMCAP_md=$'\E[1;36m'
+export LESS_TERMCAP_me=$'\E[0m'
+export LESS_TERMCAP_so=$'\E[1;47;30m'
+export LESS_TERMCAP_se=$'\E[0m'
+
+
