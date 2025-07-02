@@ -3,82 +3,6 @@ exec > >(tee -a "outputarchauto.log") 2>&1
 
 #Установка Arch Linux
 
-plasma_install="no"
-
-if [ $plasma_install = "yes" ]; then 
-#Установка видеодрайверов
-pacman -S --needed --noconfirm xf86-video-amdgpu vulkan-radeon libva-mesa-driver mesa
-
-
-#Установите Xorg:
-pacman -S --needed --noconfirm xorg xorg-xinit xorg-apps xorg-server mesa-libgl xorg-server-xwayland wayland libxkbcommon python-libevdev python-pyudev gtk4 python-yaml
-
-# Установите KDE Plasma:
-pacman -S --needed --noconfirm plasma plasma-wayland-session xorg-twm xterm egl-wayland sddm sddm-kcm packagekit-qt5 kde-applications network-manager-applet system-settings git wget
-pacman -S --needed --noconfirm  konsole dolphin ark kalk kate kclock kcolorchooser gwenview spectacle partitionmanager plasma-systemmonitor vlc firefox ffmpegthumbs xdg-desktop-portal-gtk xwaylandvideobridge qt6-imageformats kimageformats kdialog
-
-#pipwire
-pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-alsa wireplumber pipewire-jack pipewire-audio pavucontrol helvum qpwgraph 
-
-systemctl enable --now pipewire pipewire-pulse wireplumber
-
-#Включите SDDM:
-systemctl enable sddm.service
-systemctl status sddm.service
-#запускаем оболочку
-# systemctl start sddm.service
-
-#аплете отображения сетевых подключений
-systemctl enable NetworkManager
-systemctl start NetworkManager
-systemctl status NetworkManager
-systemctl enable pipewire pipewire-pulse
-
-#протокол динамической конфигурации узла
-systemctl enable dhcpd
-systemctl start dhcpd
-systemctl status dhcpd
-
-
-
-sudo pacman -S --needed --noconfirm man-db xorg xorg-xinit xf86-video-amdgpu plasma-meta konsole dolphin sddm ttf-dejavu ttf-liberation noto-fonts pipewire pipewire-pulse wireplumber amd-ucode power-profiles-daemon acpi acpid plasma-nm networkmanager-openvpn mesa mesa-vdpau libva-mesa-driver vulkan-radeon ark spectacle gwenview kate kscreen kdeconnect gvfs gvfs-mtp gvfs-gphoto2 gvfs-afc ntfs-3g exfatprogs bluez bluez-utils xdg-user-dirs xdg-utils plasma-wayland-session plasma-nano plasma-browser-integration plasma-thunderbolt plasma-zeroconf plasma-disks plasma-systemmonitor plasma-pa openssh
-
-systemctl enable --now acpid.service
-systemctl enable --now sddm.service
-systemctl enable --now NetworkManager.service
-systemctl enable --now bluetooth.service
-
-# select sshEnable in "Yes" "No"; do 
-# case $sshEnable in
-#     Yes )
-
-# systemctl enable --now sshd.service
-# systemctl status sshd
-# ;;
-# break
-#     No )
-# echo "SSH service not enabled."
-# ;;
-# break
-
-#     * )
-# echo "Invalid option. Please select Yes or No."
-# ;;
-# esac 
-# done
-
-# if [ -f /etc/ssh/sshd_config ]; then
-
-# sed -i 's/#Port 22/#Port 2414/' /etc/ssh/sshd_config
-# sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-# sudo systemctl restart sshd
-# ip a
-# else 
-# echo "sshd_config not found, please check your SSH installation."
-
-# fi
-fi
-
 #Ограничение журнала
 journalctl --vacuum-size=30M
 journalctl --verify
@@ -119,12 +43,7 @@ USER_RUNTIME_DIR="/run/user/$(id -u $user_nosudo)"
 
 #$search_maxuse и так далее - переменные
 
-
-# Установка шрифтов 
-pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra
-
-
-#Проверка для создания бэкапа
+#Проверка для создания бэкапа journal.conf
 if [ -f "$file.original" ]; then
 echo "Бэкап был уже ранее создан: $file.original"
 else
@@ -267,15 +186,18 @@ echo "Обновление завершено"
 
 echo "Идет установка пакетов"
 if [ "$y" == "yes" ]; then
-pacman -S --needed --noconfirm bash-completion xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality tor nyx tailscale extra/linux-hardened-headers multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
+# Установка шрифтов 
+pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra
+# Установка остальных пакетов
+pacman -S --needed --noconfirm bash-completion xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
 else
 echo "Пакеты пропущены"
 fi
 echo "Пакеты установлены"
 
 #Включение apparmor
-systemctl enable apparmor
-systemctl start apparmor
+# systemctl enable apparmor
+# systemctl start apparmor
 
 echo "включение power-profiles-daemon.service"
 #включение профилей производительности
