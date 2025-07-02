@@ -1,6 +1,8 @@
 #!/bin/bash
 exec > >(tee -a "outputarchauto.log") 2>&1
-
+#TODO Переписать редактирование json на утилиту jq
+#TODO Пользовательские службы systemd требуют доступа к пользовательской сессии D-Bus. Скрипт пытается передать переменные DBUS_SESSION_BUS_ADDRESS и XDG_RUNTIME_DIR, но это не гарантирует успех. Если у пользователя нет активной графической сессии в момент запуска скрипта, D-Bus не будет доступен, и команда завершится ошибкой. Это крайне ненадежный метод.
+# Проверка на root
 #Установка Arch Linux
 
 #Ограничение журнала
@@ -23,20 +25,13 @@ search_cash_pressure="vm.vfs_cache_pressure"
 pacman_config="/etc/pacman.conf"
 search_parallel_dow="ParallelDownloads"
 new_parallel_dow="10"
-
 user_nosudo="$SUDO_USER"
 path_yay_cfg="/home/$user_nosudo/.config/yay/config.json"
 srch_yay_config="cleanAfter"
 nohang="yes"
-ananicy="yes"
 trim="yes"
-
-
 grab_conf="/etc/default/grub"
 srch_grub_default="GRUB_CMDLINE_LINUX_DEFAULT"
-
-irqbalance="yes"
-stacer_xdman="yes"
 grub_configurator="yes"
 
 USER_RUNTIME_DIR="/run/user/$(id -u $user_nosudo)"
@@ -189,7 +184,7 @@ if [ "$y" == "yes" ]; then
 # Установка шрифтов 
 pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra
 # Установка остальных пакетов
-pacman -S --needed --noconfirm bash-completion xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
+pacman -S --needed --noconfirm bash-completion xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
 else
 echo "Пакеты пропущены"
 fi
@@ -236,10 +231,6 @@ if [ "$yay" = "yes" ]; then
 #-u опция, которая указывает от имени какого пользователя необходимо запустить команду
 sudo -u "$SUDO_USER" bash -c '
 cd ~
-pacman -Sy --noconfirm
-pacman -Su --noconfirm
-pacman -S --needed --noconfirm base-devel git
-
 git clone https://aur.archlinux.org/yay.git
 cd yay
 yes | makepkg -si
@@ -286,7 +277,7 @@ fi
 if [ "$nohang" = "yes" ]; then
 sudo -u "$SUDO_USER" bash -c '
 cd ~
-yay -S --needed  --noconfirm nohang-git
+yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin aur/xdman aur/firefox-extension-xdman8-browser-monitor-bin extra/irqbalance
 yay -Yc --noconfirm'
 cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
 systemctl enable --now nohang-desktop
@@ -296,43 +287,14 @@ else
 echo "nohang-git был пропущен"
 fi
 
-#Установка ananicy
-if [ "$ananicy" = "yes" ]; then
-sudo -u "$SUDO_USER" bash -c '
-
-yay -S --needed  --noconfirm aur/minq-ananicy-git
-yay -Yc --noconfirm
-'
-
 systemctl enable --now ananicy
-echo "ananict-git status: "
+echo "ananicy status:"
 systemctl status ananicy
-else
-echo "ananicy-git был пропущен"
-fi
 
-#Установка stacer and xdman
-if [ "$stacer_xdman" = "yes" ]; then
-sudo -u "$SUDO_USER" bash -c "
-yay -S --needed --noconfirm aur/stacer-bin
-yay -S --needed --noconfirm aur/xdman
-yay -S --needed --noconfirm aur/firefox-extension-xdman8-browser-monitor-bin
-yay -Yc --noconfirm"
-else
-echo "stacer и xdman были пропщуены"
-fi
-
-#установка irqbalance
-if [ "$irqbalance" = "yes" ]; then
-sudo -u "$SUDO_USER" bash -c "
-yay -S --needed --noconfirm extra/irqbalance
-yay -Yc --noconfirm"
 systemctl enable --now irqbalance
 echo "Статус irqbalance:"
 systemctl status irqbalance
-else
-echo "irqbalance был пропущен"
-fi
+
 
 #Включение trim
 if [ "$trim" = "yes" ]; then
@@ -346,21 +308,17 @@ fi
 
 if [ "$grub_configurator" = "yes" ]; then
 #определяем тип файловой системы для корневого диска
-# fstype=$(mount | grep ' on / ')
 
 #Создаем переменную с командой, которая ищет строку, где смонтирован корень
 fstype_var=$(findmnt -n -o FSTYPE / 2>/dev/null || awk '$2 == "/" {print $3}' /proc/mounts)
-# fstype_var=$(echo "$fstype" | awk '{for(i=1;i<=NF;i++) if($i=="type") print $(i+1)}')
-# fstype_var=$(findmnt -n -o FSTYPE /)
+
 #awk - перебирает слова и строки, находит слово type и выводит следующее за ним значение
-grub_params="quiet loglevel=0 rd.systemd.show_status=auto rd.udev.log_level=0 splash rootfstype=$fstype_var selinux=0 raid=noautodetect elevator=noop nowatchdog"
+grub_params="quiet loglevel=0 rd.systemd.show_status=auto rd.udev.log_level=0 splash rootfstype=$fstype_var selinux=0 raid=noautodetect nowatchdog"
 #lpj=3499912
 #noibpb - Отключает защиту от атак типа Spectre v2, Позволяет злоумышленнику обходить изоляцию между процессами 
 # no_stf_barrier - Отключает защиту от атак типа Microarchitectural Data Sampling, Позволяет атаковать секретные данные (пароли, ключи шифрования) через уязвимости типа RIDL, Fallout, ZombieLoad
 # tsx=on - Активирует Intel Transactional Synchronization Extensions — технологию для ускорения многопоточных операций.
 # tsx_async_abort=off - Полностью отключает защиту от атаки TSX Asynchronous Abort TAA позволяет атакующему читать произвольные данные из памяти ядра 
-
-
 
 #проверяем наличие бэкапа
 if [ -f "$grab_conf.original" ]; then
@@ -407,11 +365,7 @@ systemctl enable reflector.service
 systemctl start reflector.service
 systemctl enable reflector.timer
 
-
-
-
 pacman -Scc --noconfirm
-
 
 #возможно стоит добавить выбор локалей
 echo "Если вас не устраивает устанволенная локаль, то прмините команды
