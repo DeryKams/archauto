@@ -1,142 +1,178 @@
+# Обновляем систему и ставим нужные пакеты
 sudo apt update && sudo apt upgrade -y
-sudo apt install wireguard resolvconf linux-headers-$(uname -r) iptables-persistent -y
+sudo apt install wireguard ufw curl -y
 
-nano /etc/sysctl.conf
+# Настраиваем простой файрвол, открываем только нужные порты
+sudo ufw allow ssh      # Порт для подключения к серверу
+sudo ufw allow 443/tcp  # Порт для нашего замаскированного туннеля
+sudo ufw enable         # Включаем файрвол
 
-#Для работы wireguard
-net.ipv4.ip_forward = 1
-net.ipv6.conf.all.forwarding=1
-# Оптимизация сетевого стека
-net.core.rmem_max = 800000
-net.core.wmem_max = 800000
-net.core.netdev_max_backlog = 50000
-net.ipv4.tcp_congestion_control = bbr
-net.ipv4.tcp_notsent_lowat = 4096
-net.ipv4.tcp_mtu_probing = 1
-net.ipv4.tcp_fastopen = 3
-net.ipv4.udp_rmem_min = 16384
-net.ipv4.udp_wmem_min = 16384
-net.core.default_qdisc = fq_codel
-net.ipv4.tcp_ecn = 1
-net.ipv4.tcp_sack = 0
-net.ipv4.tcp_dsack = 0
+# Генерируем ключи для сервера
+umask 077
+wg genkey | sudo tee /etc/wireguard/privatekey | wg pubkey | sudo tee /etc/wireguard/publickey
 
-sudo sysctl -p
-
-wg genkey | tee /etc/wireguard/privatekey && cat /etc/wireguard/privatekey | wg pubkey > /etc/wireguard/publickey && cat /etc/wireguard/publickey
-
-mHmFnownIY9hfiJV5FT02p4/SHoA3D05VYBdAXdCQHk=
-TO81l6ve4gaXmIRExk6wfqtfZVoisrYo6ovBEe/VAAY=
-
-
-wg genkey | tee /etc/wireguard/peer_1_privatekey  && cat /etc/wireguard/peer_1_privatekey | wg pubkey | tee /etc/wireguard/peer_1_publickey
-
-+E5Kfhm/laeoUzY/BlvIe4wa07Z3buUlHgkLAmYRkFk=
-E94SqdNfagEiEKGqfqvwbN+lUs02PDNeSWVWY9ienEA=
-
-wg genkey | tee /etc/wireguard/peer_2_privatekey  && cat /etc/wireguard/peer_2_privatekey | wg pubkey | tee /etc/wireguard/peer_2_publickey
-
-uD4U2pR4hbd7kzUG6MjkH9jHcBV4qg7Vq0VA2B779Hg=
-pYTSBR0hOo+esxIFT3ZaA6AwobQfJB0u/VabceHVtwI=
-
-ip a
-#нужно получить имя реального интерфейса ens3 или eth0 и на подобие
-
-nano /etc/wireguard/wg0.conf
-
+# Создаем конфигурационный файл /etc/wireguard/wg0.conf
+sudo tee /etc/wireguard/wg0.conf > /dev/null <<EOF
 [Interface]
-PrivateKey = <server_private_key>
-Address = 10.13.13.1/24
-ListenPort = 443
-DNS = 8.8.8.8
-MTU = 1460  
+# Привязываем WireGuard к локальному интерфейсу, чтобы он не был виден извне
+ListenPort = 51820 
+PrivateKey = $(sudo cat /etc/wireguard/privatekey)
+Address = 10.10.0.1/24
 
-# Автоматизация проброса трафика
-PostUp = iptables -A FORWARD -i wg0 -o ens3 -j ACCEPT; iptables -A FORWARD -i ens3 -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT; iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE 
-PostDown = iptables -D FORWARD -i wg0 -o ens3 -j ACCEPT; iptables -D FORWARD -i ens3 -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT; iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
+# Правила для NAT, чтобы клиенты могли выходить в интернет через сервер
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1) -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1) -j MASQUERADE
 
+# Место для первого клиента. PublicKey добавим позже.
 [Peer]
-#peer_1
-PublicKey = <client_public_key(peer_1_publickey)>
-AllowedIPs = 10.13.13.2/32
-PersistentKeepalive = 25  # Критично для обхода NAT
+# PublicKey = 
+AllowedIPs = 10.10.0.2/32
+EOF
 
-nano /etc/wireguard/peer_1.conf
+# Включаем форвардинг пакетов
+echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/99-wireguard.conf
+sudo sysctl -p /etc/sysctl.d/99-wireguard.conf
 
-[Interface]
-Address = 10.13.13.2/32
-PrivateKey = <client1_private_key(/etc/wireguard/peer_1_privatekey)>
-DNS = 8.8.8.8
-MTU = 1460  
+# Запускаем WireGuard
+sudo systemctl enable wg-quick@wg0
+sudo systemctl start wg-quick@wg0
 
-[Peer]
-PublicKey = <server_public_key(/etc/wireguard/publickey)>
-Endpoint = <server-ip>:443
-AllowedIPs = 0.0.0.0/0, ::/0
-PersistentKeepalive = 25
+# Устанавливаем Xray с помощью официального скрипта
+bash -c "$(curl -L https://github.com/xtls/Xray-install/raw/main/install-release.sh)" @ install
 
-sudo iptables -t nat -F
-sudo iptables -F
-sudo netfilter-persistent save
+# Генерируем ключи для XTLS-Reality
+xray x25519
 
-sudo wg-quick down wg0
-wg-quick up wg0
-systemctl enable wg-quick@wg0
-
-
-sudo apt install shadowsocks-libev -y
-
-nano /etc/shadowsocks-libev/config.json
-
+# Создаем конфиг Xray. ЗАМЕНИТЕ your.domain.com, UUID, и privateKey
+# UUID можно сгенерировать командой: xray uuid
+sudo tee /usr/local/etc/xray/config.json > /dev/null <<EOF
 {
-  "server": "0.0.0.0",
-  "server_port": 443,
-  "password": "YourStrongPassword!",
-  "method": "chacha20-ietf-poly1305",
-  "mode": "tcp_and_udp",
-  "timeout": 7200,
-  "fast_open": true
+    "log": {
+        "loglevel": "warning"
+    },
+    "inbounds": [
+        {
+            "listen": "0.0.0.0",
+            "port": 443,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "ВАШ_UUID_ЗДЕСЬ", // Замените на сгенерированный
+                        "flow": "xtls-rprx-vision"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "reality",
+                "realitySettings": {
+                    "show": false,
+                    "dest": "www.google.com:443", // Сайт-приманка. Можно указать www.microsoft.com:443
+                    "xver": 0,
+                    "serverNames": [
+                        "your.domain.com" // ВАШ ДОМЕН
+                    ],
+                    "privateKey": "ВАШ_ПРИВАТНЫЙ_КЛЮЧ_REALITY", // Замените на сгенерированный
+                    "shortIds": [
+                        "aabbccdd" // Произвольная строка
+                    ]
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls"]
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "direct"
+        },
+        {
+            "protocol": "freedom",
+            "tag": "wg-out",
+            "settings": {
+                "domainStrategy": "UseIP",
+                "dialerProxy": "wg-dialer"
+            }
+        },
+        {
+            "protocol": "proxy",
+            "tag": "wg-dialer",
+            "settings": {
+                "transport": "gun",
+                "server": "127.0.0.1",
+                "port": 51820
+            }
+        }
+    ],
+    "routing": {
+        "rules": [
+            {
+                "type": "field",
+                "inboundTag": ["VLESS-in"],
+                "protocol": ["bittorrent"],
+                "outboundTag": "block"
+            },
+            {
+                "type": "field",
+                "network": "udp",
+                "outboundTag": "wg-out"
+            }
+        ]
+    }
 }
+EOF
 
-nano /etc/wireguard/wg0.conf
+# Перезапускаем Xray с новой конфигурацией
+sudo systemctl restart xray
+sudo systemctl status xray # Убедитесь, что он работает без ошибок
 
-[Interface]
-PrivateKey = <server_private_key>
-Address = 10.13.13.1/24
-ListenPort = 51820  # Локальный порт
-DNS = 8.8.8.8
-MTU = 1420  # Исправлено!
-
-PostUp = iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT; iptables -A FORWARD -i eth0 -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i wg0 -o eth0 -j ACCEPT; iptables -D FORWARD -i eth0 -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
-
-
-sudo systemctl enable shadowsocks-libev
-sudo systemctl start shadowsocks-libev
-sudo wg-quick down wg0
-sudo wg-quick up wg0
-
-nano /etc/wireguard/peer_1.conf
-
-[Interface]
-PrivateKey = <client_private_key>
-Address = 10.13.13.2/32
-DNS = 8.8.8.8
-MTU = 1420
-
-# Настроить прокси через Shadowsocks
-PreUp = start-shadowsocks-script.sh  # Автозапуск Shadowsocks
-
+Настройка клиента
+Клиентская настройка состоит из двух частей: установка и настройка клиента Xray и клиента WireGuard.
+Установка клиентского ПО:
+Windows: v2rayN или Nekoray.
+Android: v2rayNG.
+macOS: V2RayX или Nekoray.
+Linux: Nekoray или Xray в консоли.
+Генерация ключей WireGuard на клиенте:
+Установите WireGuard для вашей ОС.
+В приложении сгенерируйте пару ключей (приватный и публичный).
+Отправьте свой ПУБЛИЧНЫЙ ключ администратору сервера.
+Администратор добавляет ключ клиента на сервер:
+Откройте /etc/wireguard/wg0.conf на сервере.
+Найдите секцию [Peer] и вставьте полученный публичный ключ.
+Generated ini
 [Peer]
-PublicKey = <server_public_key>
-Endpoint = 127.0.0.1:51820  # Подключаемся к локальному Shadowsocks
-AllowedIPs = 0.0.0.0/0, ::/0
-PersistentKeepalive = 25
-
-nano start-shadowsocks-script.sh
-#!/bin/bash
-# Для Windows используйте .bat скрипт
-ss-local -c /path/to/shadowsocks.json &
-
-# Вместо очистки всех правил:
-sudo iptables -D FORWARD -i wg0 -o eth0 -j ACCEPT 2>/dev/null
+PublicKey = <ПУБЛИЧНЫЙ_КЛЮЧ_КЛИЕНТА>
+AllowedIPs = 10.10.0.2/32
+Use code with caution.
+Ini
+Перезапустите WireGuard на сервере: sudo systemctl restart wg-quick@wg0
+Настройка клиента Xray (на примере v2rayN/Nekoray):
+Добавьте новый сервер с типом VLESS.
+Адрес: your.domain.com
+Порт: 443
+ID (UUID): тот же, что вы указали в config.json на сервере.
+Flow: xtls-rprx-vision
+Security/Encryption: reality
+SNI (Server Name Indication): your.domain.com
+PublicKey: публичный ключ от XTLS-Reality, который вы сгенерировали на сервере.
+ShortId: тот же, что на сервере (aabbccdd).
+Включите этот профиль. Клиент Xray создаст на вашем компьютере локальный прокси.
+Настройка клиента WireGuard:
+Создайте новый туннель.
+PrivateKey: ваш клиентский приватный ключ.
+Address: IP-адрес, который вам выдал администратор (10.10.0.2/32).
+DNS: 8.8.8.8, 1.1.1.1 (или любой другой).
+В секции [Peer]:
+PublicKey: публичный ключ сервера (из файла /etc/wireguard/publickey на сервере).
+AllowedIPs: 0.0.0.0/0, ::/0 (направлять весь трафик в туннель).
+Endpoint: Это самое важное! Так как WireGuard теперь работает через локальный прокси, созданный Xray, эндпоинтом будет этот прокси. Однако, стандартный клиент WireGuard не поддерживает SOCKS5 прокси.
+Решение для клиента:
+Используйте клиент, который умеет работать с TUN/TAP адаптерами, например, NekoRay. В нем можно настроить Xray и указать, чтобы он создавал системный TUN-интерфейс, через который будет маршрутизироваться весь трафик. Это самый бесшовный метод.
+Если ваш клиент не поддерживает это, вам придется использовать WireGuard в режиме "userspace" (например, wireguard-go) с утилитами типа tun2socks, что значительно сложнее. Начните с Nekoray, это самый простой путь.
+После активации профиля Xray и туннеля WireGuard ваш трафик будет надежно замаскирован и защищен от блокировок.

@@ -45,7 +45,7 @@ alias ports='ss -tulnp'
 
 #git alias
 alias gs='git status'
-alias ga='git add'
+alias ga='git add .'
 alias gc='git commit -m'
 alias gp='git push'
 alias gl='git log --oneline --graph --decorate'

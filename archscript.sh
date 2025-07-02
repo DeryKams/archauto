@@ -28,7 +28,7 @@ new_parallel_dow="10"
 user_nosudo="$SUDO_USER"
 path_yay_cfg="/home/$user_nosudo/.config/yay/config.json"
 srch_yay_config="cleanAfter"
-nohang="yes"
+yay_packages="yes"
 trim="yes"
 grab_conf="/etc/default/grub"
 srch_grub_default="GRUB_CMDLINE_LINUX_DEFAULT"
@@ -274,18 +274,19 @@ fi
 fi
 
 #Установка nohang
-if [ "$nohang" = "yes" ]; then
+if [ "$yay_packages" = "yes" ]; then
 sudo -u "$SUDO_USER" bash -c '
 cd ~
 yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin aur/xdman aur/firefox-extension-xdman8-browser-monitor-bin extra/irqbalance
 yay -Yc --noconfirm'
 cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
+else
+echo "yay_packages был пропущен"
+fi
+
 systemctl enable --now nohang-desktop
 echo "nohang status:"
 systemctl status nohang-desktop.service
-else
-echo "nohang-git был пропущен"
-fi
 
 systemctl enable --now ananicy
 echo "ananicy status:"
