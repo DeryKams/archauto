@@ -341,8 +341,7 @@ if grep -q "^.*$srch_grub_default.*" "$grab_conf"; then
 sed -i "s/^$srch_grub_default=.*/$srch_grub_default=\"$grub_params\"/" "$grab_conf"
 
 else
-echo "$srch_grub_default не был найден по пути $grab_conf. Вставьте строку:\n
-$srch_grub_default=\"$grub_params\""
+echo "$srch_grub_default не был найден по пути $grab_conf. Вставьте строку:\n $srch_grub_default=\"$grub_params\""
 
 fi
 #создаем конфиг
