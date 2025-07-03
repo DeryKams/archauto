@@ -185,7 +185,7 @@ if [ "$y" == "yes" ]; then
 # Установка шрифтов 
 pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra
 # Установка остальных пакетов
-pacman -S --needed --noconfirm bash-completion bottom ripgrep xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
+pacman -S --needed --noconfirm bash-completion bottom ripgrep xf86-video-ati flatpak mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
 else
 echo "Пакеты пропущены"
 fi
@@ -366,6 +366,11 @@ systemctl start reflector.service
 systemctl enable reflector.timer
 
 pacman -Scc --noconfirm
+
+# Установка flatpak
+sudo pacman -S flatpak flatpak-kcm flatpak-xdg-utils
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
 
 #возможно стоит добавить выбор локалей
 echo "Если вас не устраивает устанволенная локаль, то прмините команды
