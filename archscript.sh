@@ -1,5 +1,7 @@
 #!/bin/bash
+
 exec > >(tee -a "outputarchauto.log") 2>&1
+set -euo pipefail
 #TODO Переписать редактирование json на утилиту jq
 #TODO Пользовательские службы systemd требуют доступа к пользовательской сессии D-Bus. Скрипт пытается передать переменные DBUS_SESSION_BUS_ADDRESS и XDG_RUNTIME_DIR, но это не гарантирует успех. Если у пользователя нет активной графической сессии в момент запуска скрипта, D-Bus не будет доступен, и команда завершится ошибкой. Это крайне ненадежный метод.
 # Проверка на root
@@ -175,8 +177,7 @@ fi
 
 echo "Идет обновление системы"
 
-pacman -Sy --noconfirm
-pacman -Su --noconfirm
+pacman -Syu --noconfirm
 echo "Обновление завершено"
 
 echo "Идет установка пакетов"
@@ -184,7 +185,7 @@ if [ "$y" == "yes" ]; then
 # Установка шрифтов 
 pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra
 # Установка остальных пакетов
-pacman -S --needed --noconfirm bash-completion bottom xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
+pacman -S --needed --noconfirm bash-completion bottom ripgrep xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
 else
 echo "Пакеты пропущены"
 fi
@@ -209,6 +210,10 @@ ufw enable #Включение фаервола
 echo "ufw status"
 ufw status verbose #Проверка статуса фаервола
 
+systemctl enable fail2ban.service
+systemctl start fail2ban.service
+echo "status fail2ban:"
+systemctl status fail2ban.service
 if [ "$y" == "yes" ]; then
 
 echo "Обновление микрокода"
@@ -315,11 +320,6 @@ fstype_var=$(findmnt -n -o FSTYPE / 2>/dev/null || awk '$2 == "/" {print $3}' /p
 
 #awk - перебирает слова и строки, находит слово type и выводит следующее за ним значение
 grub_params="quiet loglevel=0 rd.systemd.show_status=auto rd.udev.log_level=0 splash rootfstype=$fstype_var selinux=0 raid=noautodetect nowatchdog"
-#lpj=3499912
-#noibpb - Отключает защиту от атак типа Spectre v2, Позволяет злоумышленнику обходить изоляцию между процессами 
-# no_stf_barrier - Отключает защиту от атак типа Microarchitectural Data Sampling, Позволяет атаковать секретные данные (пароли, ключи шифрования) через уязвимости типа RIDL, Fallout, ZombieLoad
-# tsx=on - Активирует Intel Transactional Synchronization Extensions — технологию для ускорения многопоточных операций.
-# tsx_async_abort=off - Полностью отключает защиту от атаки TSX Asynchronous Abort TAA позволяет атакующему читать произвольные данные из памяти ядра 
 
 #проверяем наличие бэкапа
 if [ -f "$grab_conf.original" ]; then
