@@ -6,7 +6,18 @@ set -euo pipefail
 #TODO Пользовательские службы systemd требуют доступа к пользовательской сессии D-Bus. Скрипт пытается передать переменные DBUS_SESSION_BUS_ADDRESS и XDG_RUNTIME_DIR, но это не гарантирует успех. Если у пользователя нет активной графической сессии в момент запуска скрипта, D-Bus не будет доступен, и команда завершится ошибкой. Это крайне ненадежный метод.
 # Проверка на root
 #Установка Arch Linux
+#TODO добавить функции вывода сообщений
+# info() {
+#     echo -e "\033[1;34m[INFO]\033[0m $1"
+# }
 
+# success() {
+#     echo -e "\033[1;32m[SUCCESS]\033[0m $1"
+# }
+
+# warning() {
+#     echo -e "\033[1;33m[WARNING]\033[0m $1"
+# }
 #Ограничение журнала
 journalctl --vacuum-size=30M
 journalctl --verify
@@ -183,7 +194,7 @@ echo "Обновление завершено"
 echo "Идет установка пакетов"
 if [ "$y" == "yes" ]; then
 # Установка шрифтов 
-pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra
+pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra powerline-fonts nerd-fonts-hack
 # Установка остальных пакетов
 pacman -S --needed --noconfirm bash-completion bottom ripgrep xf86-video-ati flatpak mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch terminator code
 else
