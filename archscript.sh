@@ -204,11 +204,11 @@ echo "status power-profiles-daemon.service"
 systemctl status power-profiles-daemon.service #Чтобы убедиться, что сервис запущен
 
 #Добавление правил
-ufw default allow outgoing
-ufw default deny incoming
-ufw enable #Включение фаервола
-echo "ufw status"
-ufw status verbose #Проверка статуса фаервола
+# ufw default allow outgoing
+# ufw default deny incoming
+# ufw enable #Включение фаервола
+# echo "ufw status"
+# ufw status verbose #Проверка статуса фаервола
 
 systemctl enable fail2ban.service
 systemctl start fail2ban.service
