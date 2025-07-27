@@ -1,10 +1,12 @@
 #!/bin/bash
-
-pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow
-ranger --copy-config=all
-
 rcconf="~/.config/ranger/rc.conf"
 metpreview="kitty"
+echo "Installing ranger and configuring it for image previews in kitty terminal..."
+pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow
+echo "Copying ranger configuration files..."
+ranger --copy-config=all
+echo "Ranger configuration"
+
 # В rc.conf добавить:
 if [[ -f $rcconf ]]; then
 
@@ -43,5 +45,6 @@ if grep -q "set preview_images_method $metpreview" "$rcconf"; then
     echo "set preview_images_method $metpreview" >> "$rcconf"
     echo "Added set preview_images_method $metpreview to $rcconf."
 else
+echo "Error: $rcconf not found."
 fi
 echo "kitty terminal installed and ranger configured with image previews."

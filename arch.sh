@@ -145,7 +145,7 @@ cd ananicy-git
 makepkg -sric
 
 sudo systemctl enable ananicy 
-## или 
+## или
 
 yay -S ananicy-git
 sudo systemctl enable --now ananicy
@@ -220,130 +220,6 @@ sudo sysctl kernel.unprivileged_userns_clone=1
 
 nano ~/.bashrc
 alias steam='sudo sysctl kernel.unprivileged_userns_clone=1 && setsid /usr/bin/steam-native'
-
-1.2. Оптимизация mkinitcpio
-initramfs (первоначальный RAM-диск) загружается перед основной системой. Его можно и нужно оптимизировать.
-Использовать сжатие lz4 или zstd: Они намного быстрее, чем стандартный gzip, при распаковке во время загрузки. Это один из самых простых и эффективных способов ускорить загрузку. В файле /etc/mkinitcpio.conf измени строку:
-Generated code
-COMPRESSION="zstd" 
-```*   **Уменьшить количество хуков**: В строке `HOOKS=(...)` в том же файле оставь только то, что тебе действительно нужно. Например, если у тебя нет LVM или шифрования, хуки `lvm2` и `encrypt` не нужны.
-Use code with caution.
-1.3. Оптимизация Systemd-boot или другого загрузчика
-Уменьшить таймаут: В файле loader.conf (для systemd-boot) или grub.cfg установи таймаут выбора ОС на 0 или 1 секунду, если тебе не нужно меню загрузки.
-2. Оптимизация Файловой Системы и Дисковых Операций
-2.1. Выбор и настройка файловой системы
-Btrfs: Современная и быстрая ФС. Позволяет использовать прозрачное сжатие на лету (compress=zstd), что не только экономит место, но и может ускорить чтение/запись на медленных дисках (особенно HDD), так как сжатые данные занимают меньше места и быстрее считываются.
-Опции монтирования в /etc/fstab: rw,noatime,compress=zstd,space_cache=v2,discard=async
-F2FS: Оптимизирована специально для флеш-памяти (SSD, NVMe). Часто показывает лучшие результаты в тестах производительности на SSD.
-2.2. Preloading (Предварительная загрузка)
-Сервисы, которые анализируют часто запускаемые приложения и заранее подгружают их библиотеки в ОЗУ.
-preload: Старый, но все еще рабочий демон.
-prelockd: Более современный и интеллектуальный аналог, разработанный создателем nohang. Он анализирует использование и "закрепляет" (mlock) нужные файлы в памяти.
-systemd-readahead (устарел, но концепция важна): Раньше systemd пытался делать это автоматически. Сейчас эта функциональность удалена, но идея остается актуальной.
-4.1. Использование альтернативных аллокаторов памяти
-Стандартный аллокатор памяти в Linux (glibc malloc) — это универсальное решение. Специализированные аллокаторы могут быть быстрее в многопоточных приложениях (игры, компиляция).
-mimalloc или jemalloc: Могут быть использованы для всей системы или для отдельных приложений через LD_PRELOAD. Это может дать заметный прирост производительности в некоторых сценариях.
-Generated bash
-# Запуск приложения с mimalloc
-LD_PRELOAD="/usr/lib/libmimalloc.so" steam
-Use code with caution.
-Bash
-4.2. Оптимизация makepkg для сборки из AUR
-Ты уже используешь yay, который под капотом вызывает makepkg. Его можно настроить.
-В /etc/makepkg.conf:
-CFLAGS и CXXFLAGS: Добавь -march=native -O2 (или -O3, но это может быть менее стабильно) для оптимизации сборки под твой CPU.
-MAKEFLAGS: Установи -j$(nproc) для использования всех ядер процессора при компиляции. Yay часто делает это автоматически, но проверить стоит.
-4.3. Сетевые оптимизации (sysctl)
-Для уменьшения задержек в онлайн-играх и улучшения отзывчивости сети можно добавить в твой 99-custom.conf:
-Generated code
-# Уменьшить задержку TCP
-net.ipv4.tcp_low_latency = 1
-# Включить TCP Fast Open
-net.ipv4.tcp_fastopen = 3
-
-
-#Установка zsh
-# Обновляемся
-sudo pacman -Syu
-# установка всех пакетов
-sudo pacman -S zsh zsh-completions git curl fzf powerline-fonts nerd-fonts-hack
-chsh -s $(which zsh)
-# chsh — это команда, которая меняет оболочку входа пользователя в систему
-echo $SHELL
-# Установка фреймворка Oh My Zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-# --unattended чтобы скрипт не задавал лишних вопросов и не пытался сменить оболочку еще раз.
-
-# Установка шрифтов
-sudo pacman -S powerline-fonts
-# Редактирование файла
-nano ~/.zshrc
-# Настройка темы
-ZSH_THEME="agnoster"
-
-# Активация плагинов
-plugins=(
- # Основные плагины
-  git
-  sudo
-  z
-  fzf
-
-  # Улучшения Shell
-  colored-man-pages
-  zsh-autosuggestions
-  zsh-syntax-highlighting
-  history-substring-search
-  autocorrect
-
-  # Системные и для разработки
-  archlinux
-  systemd
-  docker
-  docker-compose
-
-  # Для экосистемы Kotlin
-  sdkman
-  kotlin
-  gradle
-)
-# git - Алиасы и удобные функции для работы с Git
-# archlinux - Короткие псевдонимы для команд `pacman` (например, `pacs` вместо `pacman -S`).
-# colored-man-pages - Делает страницы `man` цветными и более читаемыми.
-# z - Просто пишите `z часть_имени_папки`, и он перенесет вас в самый часто посещаемый каталог с таким названием
-# fzf - Интеграция нечеткого поиска. Теперь **`Ctrl+R`** вызовет интерактивный поиск по истории команд, а **`Ctrl+T`** — поиск файлов в текущем каталоге.
-# zsh-autosuggestions - Подсказки команд на основе истории и автодополнения.
-# zsh-syntax-highlighting - Подсветка синтаксиса команд в термин
-# history-substring-search: Этот плагин кардинально улучшает поиск по истории. Вы начинаете вводить любую часть команды (не обязательно с начала), а затем нажимаете клавиши Вверх/Вниз, чтобы переключаться между всеми совпадениями из вашей истории
-# autocorrect: Исправляет незначительные опечатки в командах.
-# systemd: Очень полезно для Arch Linux. Добавляет короткие псевдонимы для управления службами systemd. Например, scs apache вместо systemctl status apache
-# sdkman - менеджер версий для множества SDK (Software Development Kit) для JVM и не только
-# kotlin: Добавляет автодополнение для команд компилятора kotlin и kotlinc
-# gradle  Он обеспечивает автодополнение для задач Gradle. Вы можете написать ./gradlew bui и нажать Tab, чтобы он дополнил до build.
-
-# Установка внешних плагинов
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-git clone https://github.com/zsh-users/history-substring-search ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/history-substring-search
-
-
-# Привязка клавиш для history-substring-search. Чтобы history-substring-search заработал на стрелках Вверх/Вниз, добавьте эти строки в конец вашего файла ~/.zshrc
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
-
-source ~/.zshrc
-
-# Установка SDKMAN
-curl -s "https://get.sdkman.io" | bash
-source "$HOME/.sdkman/bin/sdkman-init.sh"
-# Устанавливаем последнюю версию Java (необходима для Kotlin)
-sdk install java
-
-# Устанавливаем последнюю версию Kotlin
-sdk install kotlin
-
-# Устанавливаем последнюю версию Gradle
-sdk install gradle
 
 
 
