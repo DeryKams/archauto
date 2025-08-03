@@ -376,10 +376,10 @@ systemctl enable reflector.service
 systemctl start reflector.service
 systemctl enable reflector.timer
 
-pacman -Scc --noconfirm
+
 
 # Установка flatpak
-sudo pacman -S flatpak flatpak-kcm flatpak-xdg-utils
+sudo pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
 
@@ -465,4 +465,4 @@ sudo locale-gen                    # Генерация локалей"
 
 
 
-
+pacman -Scc --noconfirm
