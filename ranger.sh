@@ -1,10 +1,10 @@
 #!/bin/bash
 
 echo "Installing ranger and configuring it for image previews in kitty terminal..."
-pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow poppler-utils
+pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow
 
 #Получаем домашнюю директорию пользователя 
-if [[ $EUID -eq 0]] && [[ -n "$SUDO_USER" ]]; then
+if [[ $EUID -eq 0 ]] && [[ -n "$SUDO_USER" ]]; then
 #$EUID - переменная, которая содержит ID текущего пользователя
 # -eq - аналог == для других языков
 # 0 - это ID суперпользователя (root)
@@ -17,6 +17,7 @@ USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 # getent - команда, которая позволяет получать записи из системных баз данных Linux, к примеру passwd, group или hosts
 # Синтаксис: getent <база данных> <ключ> - getent passwd "$SUDO_USER" 
 # getent passwd "$SUDO_USER" - ищем в справочнике passwd пользователя, который запустил команду через sudo
+# | (pipe) — это оператор, который перенаправляет вывод одной команды (getent) на вход другой
 # cut - вывод команды в поток
 # -d: - разделитель, который используется в файле passwd (записи разделены двоеточиями)
 # -f6 - вывод шестого поля, которое соответствует домашней директории пользователя
@@ -28,7 +29,7 @@ echo "Домашняя директория пользователя: $USER_HOME
 
 #Копируем конфигурационные файлы ranger
 echo "Copying ranger configuration files..."
-ranger --copy-config=all
+sudo -u "$SUDO_USER" ranger --copy-config=all
 echo "Ranger configuration"
 
 rcconf="$USER_HOME/.config/ranger/rc.conf"
@@ -37,8 +38,8 @@ metpreview="kitty"
 # Проверка существования файла rc.conf
 if [[ -f "$rcconf" ]]; then
     # Настройка preview_images
-    if grep -q "set preview_images" "$rcconf"; then
-        if grep -q "set preview_images true" "$rcconf"; then
+    if grep -q "^set preview_images" "$rcconf"; then
+        if grep -q "^set preview_images true" "$rcconf"; then
             echo "set preview_images true already exists in $rcconf."
         else
             sed -i 's/^set preview_images.*/set preview_images true/' "$rcconf"
@@ -50,8 +51,8 @@ if [[ -f "$rcconf" ]]; then
     fi
 
     # Настройка preview_images_method
-    if grep -q "set preview_images_method" "$rcconf"; then
-        if grep -q "set preview_images_method $metpreview" "$rcconf"; then
+    if grep -q "^set preview_images_method" "$rcconf"; then
+        if grep -q "^set preview_images_method $metpreview" "$rcconf"; then
             echo "set preview_images_method $metpreview already exists in $rcconf."
         else
             sed -i "s/^set preview_images_method.*/set preview_images_method $metpreview/" "$rcconf"
@@ -66,26 +67,3 @@ if [[ -f "$rcconf" ]]; then
 else
     echo "Error: $rcconf not found."
 fi
-
-
-# добавьте в scope.sh
-# pdf)
-#   pdftoppm -jpeg -f 1 -l 1 "${FILE_PATH}" "${PREVIEW_IMG%.*}" && exit 6
-#   ;;
-
-# Включите подсветку кода
-# handle_extension() {
-#   case "${ext}" in
-#     pdf)
-#       pdftotext -l 10 -nopgbrk -q -- "${FILE_PATH}" - && exit 5
-#       ;;
-#     docx|pptx|xlsx|odt|ods|odp)
-#       atool --list -- "${FILE_PATH}" && exit 5
-#       ;;
-#   esac
-# }
-
-# # Включите подсветку для текстовых файлов
-# handle_text() {
-#   highlight --out-format=ansi "${FILE_PATH}" && exit 5
-# }
