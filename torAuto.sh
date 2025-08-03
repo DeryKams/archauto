@@ -7,7 +7,7 @@ pkgtorsocks="torsocks"
 pathTorc="/etc/tor/torrc"
 
 
-#Проверяем установлен ли паке
+#Проверяем установлен ли пакет
 if pacman -Qi "$pkgtor" &>/dev/null; then
 echo "Package $pkgtor is exist in your system"
 else
@@ -16,7 +16,7 @@ if pacman -Ss "$pkgtor" &>/dev/null; then
 echo "$pkgtor is exist in pacman"
 echo "$pkgtor installing"
 sudo pacman -Syu
-sudo pacman -S "$pkgtor"
+sudo pacman -S --needed --noconfirm "$pkgtor"
 else
 echo "pls, install tor"
 fi
@@ -28,7 +28,7 @@ else
 if pacman -Ss "$pkgnyx" &>/dev/null; then
 echo "$pkgnyx is exist in pacman"
 echo "$pkgtor installing"
-sudo pacman -S "$pkgnyx"
+sudo pacman -S --needed --noconfirm "$pkgnyx"
 else
 echo "pls, install $pkgnyx"
 fi
@@ -40,7 +40,7 @@ else
 if pacman -Ss "$pkgtorsocks" &>/dev/null; then
 echo "$pkgtorsocks is exist in pacman"
 echo "$pkgtorsocks installing"
-sudo pacman -S "$pkgtorsocks"
+sudo pacman -S --needed --noconfirm "$pkgtorsocks"
 else
 echo "pls, install $pkgtorsocks"
 fi
