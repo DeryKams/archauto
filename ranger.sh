@@ -1,13 +1,38 @@
 #!/bin/bash
-rcconf="$HOME/.config/ranger/rc.conf"
-metpreview="kitty"
 
 echo "Installing ranger and configuring it for image previews in kitty terminal..."
-pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow
+pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow poppler-utils
 
+#Получаем домашнюю директорию пользователя 
+if [[ $EUID -eq 0]] && [[ -n "$SUDO_USER" ]]; then
+#$EUID - переменная, которая содержит ID текущего пользователя
+# -eq - аналог == для других языков
+# 0 - это ID суперпользователя (root)
+# [[ $EUID -eq 0 ]] - условие: если текущий пользователь - суперпользователь
+# && - логическое "и"; оба условия должны быть истинными
+# -n - проверка что строка не пустая
+# $SUDO_USER - переменная в которой храниться имя пользователя, который  запустил команду через sudo
+# [[ -n "$SUDO_USER" ]] - проверяется, что в переменной пользователя, который запустил через sudo, не пустая
+USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+# getent - команда, которая позволяет получать записи из системных баз данных Linux, к примеру passwd, group или hosts
+# Синтаксис: getent <база данных> <ключ> - getent passwd "$SUDO_USER" 
+# getent passwd "$SUDO_USER" - ищем в справочнике passwd пользователя, который запустил команду через sudo
+# cut - вывод команды в поток
+# -d: - разделитель, который используется в файле passwd (записи разделены двоеточиями)
+# -f6 - вывод шестого поля, которое соответствует домашней директории пользователя
+else
+USER_HOME="$HOME"
+fi
+#домашняя директория пользователя содержиться в $USER_HOME
+echo "Домашняя директория пользователя: $USER_HOME"
+
+#Копируем конфигурационные файлы ranger
 echo "Copying ranger configuration files..."
 ranger --copy-config=all
 echo "Ranger configuration"
+
+rcconf="$USER_HOME/.config/ranger/rc.conf"
+metpreview="kitty"
 
 # Проверка существования файла rc.conf
 if [[ -f "$rcconf" ]]; then
@@ -41,3 +66,26 @@ if [[ -f "$rcconf" ]]; then
 else
     echo "Error: $rcconf not found."
 fi
+
+
+# добавьте в scope.sh
+# pdf)
+#   pdftoppm -jpeg -f 1 -l 1 "${FILE_PATH}" "${PREVIEW_IMG%.*}" && exit 6
+#   ;;
+
+# Включите подсветку кода
+# handle_extension() {
+#   case "${ext}" in
+#     pdf)
+#       pdftotext -l 10 -nopgbrk -q -- "${FILE_PATH}" - && exit 5
+#       ;;
+#     docx|pptx|xlsx|odt|ods|odp)
+#       atool --list -- "${FILE_PATH}" && exit 5
+#       ;;
+#   esac
+# }
+
+# # Включите подсветку для текстовых файлов
+# handle_text() {
+#   highlight --out-format=ansi "${FILE_PATH}" && exit 5
+# }
