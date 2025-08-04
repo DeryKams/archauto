@@ -466,3 +466,4 @@ sudo locale-gen                    # Генерация локалей"
 
 
 pacman -Scc --noconfirm
+123
