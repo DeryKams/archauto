@@ -1,6 +1,7 @@
 #!/bin/bash
 
 exec > >(tee -a "outputarchauto.log") 2>&1
+
 # set -euo pipefail
 #TODO Переписать редактирование json на утилиту jq
 #TODO Пользовательские службы systemd требуют доступа к пользовательской сессии D-Bus. Скрипт пытается передать переменные DBUS_SESSION_BUS_ADDRESS и XDG_RUNTIME_DIR, но это не гарантирует успех. Если у пользователя нет активной графической сессии в момент запуска скрипта, D-Bus не будет доступен, и команда завершится ошибкой. Это крайне ненадежный метод.
@@ -18,6 +19,7 @@ exec > >(tee -a "outputarchauto.log") 2>&1
 # warning() {
 #     echo -e "\033[1;33m[WARNING]\033[0m $1"
 # }
+
 #Ограничение журнала
 journalctl --vacuum-size=30M
 journalctl --verify
@@ -344,8 +346,81 @@ else
     echo "Error: $rcconf not found."
 fi
 
+#Включение apparmor
+# systemctl enable apparmor
+# systemctl start apparmor
+
+echo "включение power-profiles-daemon.service"
+#включение профилей производительности
+systemctl unmask power-profiles-daemon.service
+systemctl enable power-profiles-daemon.service #Запуск при старте системы
+systemctl start power-profiles-daemon.service
+echo "status power-profiles-daemon.service"
+systemctl status power-profiles-daemon.service #Чтобы убедиться, что сервис запущен
+
+#Включение trim
+if [ "$trim" = "yes" ]; then
+systemctl enable --now fstrim.timer
+fstrim -va
+echo "Статус службы fstrim"
+systemctl status fstrim.timer
+else
+echo "trim был пропущен"
+fi
 
 
+#объявляем функцию для включения служб
+enable_service(){
+
+local service_name="$1"
+#$1 - это первый аргумент, который передается функции
+# local - объявляем переменную, которая будет локально внутри данной функции. К примеру, чтобы она не перезаписывала глобальные 
+
+if systemctl enable --now "$service_name"; then
+echo "Service $service_name enabled and started successfully."
+
+if systemctl is-active --quiet "$service_name"; then
+# systemctl is-active - специально созданная команда для проверки статуса службы
+# --quiet - означает, что вывод будет без лишней информации, только код возврата
+    echo "Service $service_name is running."
+else
+    echo "Service $service_name is not running after enabling."
+            journalctl -n 5 -u "$service_name" --no-pager
+fi      
+else
+echo "Failed to enable or start service $service_name. It may already be running or not exist."
+ journalctl -n 10 -u "$service_name" --no-pager
+fi
+
+
+}
+# проверяем статусы служб
+#Объявляем массив для служб
+# -a - объявляем, что это массив
+# -r - объявляем, что массив является неизменяемым, то есть только для чтения
+declare -a LIST_SERVICE_CHECK=(
+ "reflector.service"
+    "reflector.timer"
+    "fail2ban.service"
+    "nohang-desktop.service"
+    "ananicy.service"
+    "irqbalance.service"
+)
+
+for item in "${LIST_SERVICE_CHECK[@]}"; do 
+#for - это цикл, который перебирает элементы массива
+# item - переменная, которую мы задали конкретно для данного цикла. Туда "кладется" каждый элемент массива по очереди
+# "" - нужны для того, чтобы службы в которых присутствуют пробелы были восприняты, как единое целое, а не ка кнесколько служб
+# [@] - квадрытные скобки нужны для обращения к элементам массива, а знак @ - для обращения ко всем элементам массива
+# если просто объявить $LIST_SERVICE_CHECK, то bash возьмет только первый элемент массива, а не все
+# если использовать [*], то будет взят весь массив, как единое целое, то есть все элементы массива будут восприниматься как одна строка
+enable_service "$item"
+# enable_service - функция, которую мы ранее определили и которая берет элемент item и выполняет операции
+done
+
+
+# настройка reflector
+reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 
 #установка yay
 if [ "$yay" = "yes" ]; then
@@ -398,7 +473,7 @@ echo "Возникла критическая ошибка в редактиро
 fi
 fi
 
-#Установка nohang
+#Установка пакетов из yay
 if [ "$yay_packages" = "yes" ]; then
 sudo -u "$SUDO_USER" bash -c '
 cd ~
@@ -414,54 +489,3 @@ pacman -Scc --noconfirm
 echo "Если вас не устраивает устанволенная локаль, то прмините команды
 sudo nano /etc/locale.gen          # Редактирование локалей
 sudo locale-gen                    # Генерация локалей"
-
-
-
-#Включение apparmor
-# systemctl enable apparmor
-# systemctl start apparmor
-
-echo "включение power-profiles-daemon.service"
-#включение профилей производительности
-systemctl unmask power-profiles-daemon.service
-systemctl enable power-profiles-daemon.service #Запуск при старте системы
-systemctl start power-profiles-daemon.service
-echo "status power-profiles-daemon.service"
-systemctl status power-profiles-daemon.service #Чтобы убедиться, что сервис запущен
-
-
-systemctl enable --now nohang-desktop
-echo "nohang status:"
-systemctl status nohang-desktop.service
-
-systemctl enable --now ananicy
-echo "ananicy status:"
-systemctl status ananicy
-
-systemctl enable --now irqbalance
-echo "irqbalance status:"
-systemctl status irqbalance
-
-
-
-systemctl enable fail2ban.service
-systemctl start fail2ban.service
-echo "status fail2ban:"
-systemctl status fail2ban.service
-
-#установка reflector
-reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
-pacman -Syyu
-systemctl enable reflector.service
-systemctl start reflector.service
-systemctl enable reflector.timer
-
-#Включение trim
-if [ "$trim" = "yes" ]; then
-systemctl enable --now fstrim.timer
-fstrim -va
-echo "Статус службы fstrim"
-systemctl status fstrim.timer
-else
-echo "trim был пропущен"
-fi
