@@ -196,23 +196,11 @@ if [ "$y" == "yes" ]; then
 # Установка шрифтов 
 pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra powerline-fonts
 # Установка остальных пакетов
-pacman -S --needed --noconfirm bash-completion bottom ripgrep xf86-video-ati flatpak mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch kitty code
+pacman -S --needed --noconfirm bash-completion bottom ripgrep xf86-video-ati flatpak mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch kitty code reflector
 else
 echo "Пакеты пропущены"
 fi
 echo "Пакеты установлены"
-
-#Включение apparmor
-# systemctl enable apparmor
-# systemctl start apparmor
-
-echo "включение power-profiles-daemon.service"
-#включение профилей производительности
-systemctl unmask power-profiles-daemon.service
-systemctl enable power-profiles-daemon.service #Запуск при старте системы
-systemctl start power-profiles-daemon.service
-echo "status power-profiles-daemon.service"
-systemctl status power-profiles-daemon.service #Чтобы убедиться, что сервис запущен
 
 #Добавление правил
 # ufw default allow outgoing
@@ -221,19 +209,9 @@ systemctl status power-profiles-daemon.service #Чтобы убедиться, �
 # echo "ufw status"
 # ufw status verbose #Проверка статуса фаервола
 
-systemctl enable fail2ban.service
-systemctl start fail2ban.service
-echo "status fail2ban:"
-systemctl status fail2ban.service
 if [ "$y" == "yes" ]; then
 
-#установка reflector
-pacman -S --noconfirm --needed reflector
-reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
-pacman -Syyu
-systemctl enable reflector.service
-systemctl start reflector.service
-systemctl enable reflector.timer
+
 
 # Установка flatpak
 sudo pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
@@ -366,15 +344,7 @@ else
     echo "Error: $rcconf not found."
 fi
 
-#Включение trim
-if [ "$trim" = "yes" ]; then
-systemctl enable fstrim.timer
-fstrim -va
-echo "Статус службы fstrim"
-systemctl status fstrim.timer
-else
-echo "trim был пропущен"
-fi
+
 
 
 #установка yay
@@ -439,6 +409,27 @@ else
 echo "yay_packages был пропущен"
 fi
 
+pacman -Scc --noconfirm
+#возможно стоит добавить выбор локалей
+echo "Если вас не устраивает устанволенная локаль, то прмините команды
+sudo nano /etc/locale.gen          # Редактирование локалей
+sudo locale-gen                    # Генерация локалей"
+
+
+
+#Включение apparmor
+# systemctl enable apparmor
+# systemctl start apparmor
+
+echo "включение power-profiles-daemon.service"
+#включение профилей производительности
+systemctl unmask power-profiles-daemon.service
+systemctl enable power-profiles-daemon.service #Запуск при старте системы
+systemctl start power-profiles-daemon.service
+echo "status power-profiles-daemon.service"
+systemctl status power-profiles-daemon.service #Чтобы убедиться, что сервис запущен
+
+
 systemctl enable --now nohang-desktop
 echo "nohang status:"
 systemctl status nohang-desktop.service
@@ -452,10 +443,25 @@ echo "irqbalance status:"
 systemctl status irqbalance
 
 
-pacman -Scc --noconfirm
-#возможно стоит добавить выбор локалей
-echo "Если вас не устраивает устанволенная локаль, то прмините команды
-sudo nano /etc/locale.gen          # Редактирование локалей
-sudo locale-gen                    # Генерация локалей"
 
+systemctl enable fail2ban.service
+systemctl start fail2ban.service
+echo "status fail2ban:"
+systemctl status fail2ban.service
 
+#установка reflector
+reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
+pacman -Syyu
+systemctl enable reflector.service
+systemctl start reflector.service
+systemctl enable reflector.timer
+
+#Включение trim
+if [ "$trim" = "yes" ]; then
+systemctl enable --now fstrim.timer
+fstrim -va
+echo "Статус службы fstrim"
+systemctl status fstrim.timer
+else
+echo "trim был пропущен"
+fi
