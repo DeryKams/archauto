@@ -6,26 +6,35 @@ local service_name="$1"
 #$1 - это первый аргумент, который передается функции
 # local - объявляем переменную, которая будет локально внутри данной функции. К примеру, чтобы она не перезаписывала глобальные 
 
-}
-
 if systemctl enable --now "$service_name"; then
 echo "Service $service_name enabled and started successfully."
+
+if systemctl is-active --quiet "$service_name"; then
+# systemctl is-active - специально созданная команда для проверки статуса службы
+# --quiet - означает, что вывод будет без лишней информации, только код возврата
+    echo "Service $service_name is running."
+else
+    echo "Service $service_name is not running after enabling."
+            journalctl -n 5 -u "$service_name" --no-pager
+fi      
 else
 echo "Failed to enable or start service $service_name. It may already be running or not exist."
+ journalctl -n 10 -u "$service_name" --no-pager
 fi
 
+
+}
 # проверяем статусы служб
 #Объявляем массив для служб
 # -a - объявляем, что это массив
 # -r - объявляем, что массив является неизменяемым, то есть только для чтения
-declare -a -r LIST_SERVICE_CHECK=(
-    reflector.service
-    reflector.timer
-    fail2ban.service
-    nohang-desktop
-    ananicy
-    irqbalance
-
+declare -a LIST_SERVICE_CHECK=(
+ "reflector.service"
+    "reflector.timer"
+    "fail2ban.service"
+    "nohang-desktop.service"
+    "ananicy.service"
+    "irqbalance.service"
 )
 
 for item in "${LIST_SERVICE_CHECK[@]}"; do 
@@ -38,32 +47,3 @@ for item in "${LIST_SERVICE_CHECK[@]}"; do
 enable_service "$item"
 # enable_service - функция, которую мы ранее определили и которая берет элемент item и выполняет операции
 done
-
-# Проходим по массиву и включаем каждую службу
-# for service in "${SERVICES_TO_ENABLE[@]}"; do
-#     enable_service_safely "$service"
-# done
-# Use code with caution.
-# Bash
-# Это наш "помощник", который берет список и выполняет с каждым пунктом одно и то же действие. В программировании это называется цикл (loop).
-# Разберем эту конструкцию:
-# for: Это ключевое слово, которое говорит: "Начинаем перебор!".
-# service: Это временная переменная. Представьте, что наш помощник берет первый пункт из списка ("nohang-desktop.service") и записывает его на маленький стикер с названием service. Он будет использовать этот стикер для текущей работы. Когда он закончит с первым пунктом, он выкинет этот стикер и на новом напишет следующий пункт из списка ("ananicy.service"). И так далее. Имя service мы придумали сами, можно было назвать item или s.
-# in: Слово "в". Оно соединяет временную переменную (service) с источником данных (нашим списком). Получается фраза "для каждого service в [нашем списке]...".
-# "${SERVICES_TO_ENABLE[@]}": Это самая важная и сложная часть. Давайте разберем ее изнутри наружу:
-# SERVICES_TO_ENABLE: Мы говорим, из какого списка брать элементы.
-# [...]: Квадратные скобки — это синтаксис для доступа к элементам массива.
-# @: Этот символ означает "взять ВСЕ элементы из массива".
-# "...": Двойные кавычки вокруг всей конструкции — это критически важно! Они гарантируют, что если в названии элемента будет пробел (например, "My Awesome Service.service"), то он будет обработан как один элемент, а не три. Всегда используйте кавычки!
-# do: Ключевое слово, которое говорит: "А теперь делай вот это:".
-# enable_service_safely "$service": Это и есть то действие, которое мы выполняем. Мы вызываем нашу функцию и передаем ей содержимое нашего "стикера" — временной переменной $service. Обратите внимание, что $service тоже в кавычках по той же причине (на случай, если в имени будут пробелы).
-# done: Ключевое слово, которое говорит: "Работа с этим пунктом закончена. Возвращайся к for и бери следующий пункт". Когда пункты в списке заканчиваются, цикл завершается.
-# Как это работает вместе: Пошаговый Процесс
-# Цикл for запускается.
-# Он смотрит в массив SERVICES_TO_ENABLE.
-# Берет первый элемент "nohang-desktop.service" и "кладет" его в переменную service.
-# Выполняет команду enable_service_safely "nohang-desktop.service".
-# Возвращается к началу.
-# Берет второй элемент "ananicy.service" и кладет его в service.
-# Выполняет команду enable_service_safely "ananicy.service".
-# ...и так до тех пор, пока не дойдет до последнего элемента "fstrim.timer". После его обработки цикл завершается.
