@@ -25,8 +25,9 @@ bindsecond="bindkey '^[[B' history-substring-search-down"
 pacman -Syu --noconfirm
 # установка всех пакетов
 
-pacman -S --needed --noconfirm zsh zsh-completions git curl fzf ttf-meslo-nerd-font-powerlevel10k
+pacman -S --needed --noconfirm zsh zsh-completions fzf ttf-meslo-nerd-font-powerlevel10k
 # chsh — это команда, которая меняет оболочку после входа пользователя в систему
+# делаем zsh дефолтным шеллом
 chsh -s $(which zsh)
 
 # обновляем кэш шрифтов

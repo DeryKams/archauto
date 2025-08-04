@@ -66,6 +66,8 @@ fi
 done
 
 if grep -qF "ControlPort" "$pathTorc"; then
+# -F (fixed-strings): ищет не по регулярному выражению, а по «буквальному» тексту (строке).
+# -q (quiet): не выводит ничего в стандартный вывод, только код возврата, который показывает, найдено совпадение или нет.
 echo "is exist"
 if [[ "ControlPort" == "9051" ]] "$pathTorc"; then
 fi
