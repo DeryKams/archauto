@@ -368,6 +368,9 @@ else
 echo "trim был пропущен"
 fi
 
+pacman -S --noconfirm --needed openresolv
+systemctl enable systemd-resolved.service
+systemctl start systemd-resolved.service
 
 #объявляем функцию для включения служб
 enable_service(){
