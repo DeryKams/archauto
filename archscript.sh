@@ -213,12 +213,6 @@ echo "Пакеты установлены"
 
 if [ "$y" == "yes" ]; then
 
-
-
-# Установка flatpak
-sudo pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
 echo "Обновление микрокода"
 pacman -S --noconfirm amd-ucode
 mkinitcpio -P
@@ -302,6 +296,7 @@ USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 else
 USER_HOME="$HOME"
 fi
+
 #домашняя директория пользователя содержиться в $USER_HOME
 echo "Домашняя директория пользователя: $USER_HOME"
 
@@ -344,6 +339,68 @@ if [[ -f "$rcconf" ]]; then
     echo "kitty terminal installed and ranger configured with image previews."
 else
     echo "Error: $rcconf not found."
+fi
+
+#установка yay
+if [ "$yay" = "yes" ]; then
+#проверяем равно ли значение пременной
+{
+#Создается subshell; Все команды выполняеются в отдельном процессе; Изменения не влияют на родительский процесс
+#sudo -u - это опция конкретной команды sudo, поэтому без нее нельзя запускать
+#-u опция, которая указывает от имени какого пользователя необходимо запустить команду
+sudo -u "$SUDO_USER" bash -c '
+cd ~
+git clone https://aur.archlinux.org/yay.git
+cd yay
+yes | makepkg -si
+cd ~
+rm -rf yay
+yay -Y --gendb --noconfirm && yay -Y --devel --save
+yay --version
+'
+yay -Syu
+#SUDO_USER - переменная системы, это пользователь, который вызвал SUDO
+#sudo -u "$SUDO_USER" bash -c - вызывает subshell от имени пользователя, который вызвал команду sudo
+#Все команды выполняются в отдельном subshell
+#Кавычки должны быть одинарные
+}
+else
+echo "Установка yay пропущена"
+fi
+
+#Создание конфигурационного файла и редактирование конфига yay
+
+if grep -q "\"$srch_yay_config\".*" "$path_yay_cfg"; then
+#Проверяем существование сроки в конфиге
+if grep -q "\"$srch_yay_config\": true," "$path_yay_cfg"; then
+echo "$srch_yay_config уже true"
+#проверяем не является ли false
+else
+sed -i "s/\"$srch_yay_config\".*/\"$srch_yay_config\": true,/" "$path_yay_cfg"
+echo "$srch_yay_config был изменен на true"
+#Изменяем на true
+fi
+else
+echo "Строка \"$srch_yay_config\": true, не существует по пути $path_yay_cfg"
+if grep -q "{" "$path_yay_cfg"; then
+sed -i '/^{/a\
+\t"'"$srch_yay_config"'": true,' "$path_yay_cfg"
+#\t - символ табуляции
+echo "Строка \"$srch_yay_config\": true, была добавлена по пути $path_yay_cfg"
+else
+echo "Возникла критическая ошибка в редактировании конфигурационного файла yay. Строка \"$srch_yay_config\": true, не была добавлена по пути $path_yay_cfg"
+fi
+fi
+
+#Установка пакетов из yay
+if [ "$yay_packages" = "yes" ]; then
+sudo -u "$SUDO_USER" bash -c '
+cd ~
+yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman firefox-extension-xdman8-browser-monitor-bin extra/irqbalance
+yay -Yc --noconfirm'
+cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
+else
+echo "yay_packages был пропущен"
 fi
 
 #Включение apparmor
@@ -425,67 +482,10 @@ done
 # настройка reflector
 reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 
-#установка yay
-if [ "$yay" = "yes" ]; then
-#проверяем равно ли значение пременной
-{
-#Создается subshell; Все команды выполняеются в отдельном процессе; Изменения не влияют на родительский процесс
-#sudo -u - это опция конкретной команды sudo, поэтому без нее нельзя запускать
-#-u опция, которая указывает от имени какого пользователя необходимо запустить команду
-sudo -u "$SUDO_USER" bash -c '
-cd ~
-git clone https://aur.archlinux.org/yay.git
-cd yay
-yes | makepkg -si
-cd ~
-rm -rf yay
-yay -Y --gendb --noconfirm && yay -Y --devel --save
-yay --version
-'
-yay -Syu
-#SUDO_USER - переменная системы, это пользователь, который вызвал SUDO
-#sudo -u "$SUDO_USER" bash -c - вызывает subshell от имени пользователя, который вызвал команду sudo
-#Все команды выполняются в отдельном subshell
-#Кавычки должны быть одинарные
-}
-else
-echo "Установка yay пропущена"
-fi
+# Установка flatpak
+sudo pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-#Создание конфигурационного файла и редактирование конфига yay
-
-if grep -q "\"$srch_yay_config\".*" "$path_yay_cfg"; then
-#Проверяем существование сроки в конфиге
-if grep -q "\"$srch_yay_config\": true," "$path_yay_cfg"; then
-echo "$srch_yay_config уже true"
-#проверяем не является ли false
-else
-sed -i "s/\"$srch_yay_config\".*/\"$srch_yay_config\": true,/" "$path_yay_cfg"
-echo "$srch_yay_config был изменен на true"
-#Изменяем на true
-fi
-else
-echo "Строка \"$srch_yay_config\": true, не существует по пути $path_yay_cfg"
-if grep -q "{" "$path_yay_cfg"; then
-sed -i '/^{/a\
-\t"'"$srch_yay_config"'": true,' "$path_yay_cfg"
-#\t - символ табуляции
-echo "Строка \"$srch_yay_config\": true, была добавлена по пути $path_yay_cfg"
-else
-echo "Возникла критическая ошибка в редактировании конфигурационного файла yay. Строка \"$srch_yay_config\": true, не была добавлена по пути $path_yay_cfg"
-fi
-fi
-
-#Установка пакетов из yay
-if [ "$yay_packages" = "yes" ]; then
-sudo -u "$SUDO_USER" bash -c '
-cd ~
-yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman firefox-extension-xdman8-browser-monitor-bin extra/irqbalance
-yay -Yc --noconfirm'
-cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
-else
-echo "yay_packages был пропущен"
-fi
 
 pacman -Scc --noconfirm
 #возможно стоит добавить выбор локалей
