@@ -358,6 +358,7 @@ rm -rf yay
 yay -Y --gendb --noconfirm && yay -Y --devel --save
 yay --version
 '
+
 yay -Syu
 #SUDO_USER - переменная системы, это пользователь, который вызвал SUDO
 #sudo -u "$SUDO_USER" bash -c - вызывает subshell от имени пользователя, который вызвал команду sudo
@@ -368,7 +369,23 @@ else
 echo "Установка yay пропущена"
 fi
 
+# Можно попробовать один из этих сопособов
+# sudo pacman -S --needed base-devel git
+# git clone https://aur.archlinux.org/yay-bin.git
+# cd yay-bin
+# makepkg -si
+# sudo -u "$SUDO_USER" bash -c '
+# cd ~
+# wget https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz
+# tar -xvf yay.tar.gz
+# cd yay
+# makepkg -si --noconfirm
+# '
+
 #Создание конфигурационного файла и редактирование конфига yay
+
+path_yay_cfg="/home/$user_nosudo/.config/yay/config.json"
+srch_yay_config="cleanAfter"
 
 if grep -q "\"$srch_yay_config\".*" "$path_yay_cfg"; then
 #Проверяем существование сроки в конфиге
@@ -397,7 +414,8 @@ if [ "$yay_packages" = "yes" ]; then
 sudo -u "$SUDO_USER" bash -c '
 cd ~
 yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman firefox-extension-xdman8-browser-monitor-bin extra/irqbalance
-yay -Yc --noconfirm'
+yay -Yc --noconfirm
+'
 cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
 else
 echo "yay_packages был пропущен"
