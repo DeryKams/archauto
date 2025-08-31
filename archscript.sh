@@ -514,9 +514,9 @@ done
 reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 
 # Установка flatpak
-sudo pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
+pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
+flatpak install -y io.github.Qalculate.qalculate-qt org.telegram.desktop
 
 pacman -Scc --noconfirm
 #возможно стоит добавить выбор локалей
