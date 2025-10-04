@@ -426,7 +426,7 @@ fi
 if [ "$yay_packages" = "yes" ]; then
 sudo -u "$SUDO_USER" bash -c '
 cd ~
-yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman firefox-extension-xdman8-browser-monitor-bin extra/irqbalance
+yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman firefox-extension-xdman8-browser-monitor-bin extra/irqbalance extra/libqalculate
 yay -Yc --noconfirm
 '
 cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
@@ -514,7 +514,7 @@ done
 reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 
 # Установка flatpak
-pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
+pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils org.telegram.desktop
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install -y io.github.Qalculate.qalculate-qt org.telegram.desktop
 
