@@ -102,6 +102,7 @@ nameserver 1.1.1.1
             echo "Файл  не найден"
             
         fi
+        # Настройка DNS
         
         # Установка paru
         
@@ -118,6 +119,7 @@ rm -rf paru
             '
             
         fi
+        # Установка paru
         
         # Установка yay
         if [ "$aur_choice" == "yay" ]; then
@@ -141,9 +143,9 @@ yay --version
             #Все команды выполняются в отдельном subshell
             #Кавычки должны быть одинарные
         }
-    else
-        echo "Установка yay пропущена"
+    
     fi
+    # Установка yay
     
     # Окончание установки aur helper
 fi
