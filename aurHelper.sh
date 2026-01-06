@@ -84,10 +84,6 @@ if [ $# -eq 0 ]; then
     
 fi
 
-if [[ "$aur_choice" == "none" ]]; then
-    echo "Пропуск установки aur helper"
-fi
-
 # Начало установки aur helper
 if [ "$aur_choice" != "none" ]; then
     # Проверяем, необходимо ли устанавливать aur helper
@@ -111,7 +107,7 @@ nameserver 1.1.1.1
         
         if [[ "$aur_choice" == "paru" ]]; then
             
-            sudo pacman -S --noconfirm --needed rust rust-wasi cargo
+            sudo pacman -S --noconfirm --needed rustup rust-wasm cargo
             
             sudo -u "$SUDO_USER" bash -c '
 cd ~
