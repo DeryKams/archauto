@@ -1,5 +1,6 @@
 #!/bin/bash
 
+yay_packages="yes"
 
 if [ $# -eq 0 ]; then
     echo "При запуске скрипта не передан ни один аргумент."
@@ -87,47 +88,47 @@ fi
 # Начало установки aur helper
 if [ "$aur_choice" != "none" ]; then
     # Проверяем, необходимо ли устанавливать aur helper
+    
+    # Настройка DNS
+    if [ -f "/etc/resolv.conf" ]; then
         
-        # Настройка DNS
-        if [ -f "/etc/resolv.conf" ]; then
-            
-            echo "Файл найден"
-            echo "
+        echo "Файл найден"
+        echo "
 nameserver 8.8.8.8
 nameserver 1.1.1.1
-            " > /etc/resolv.conf
-            
-        else
-            echo "Файл  не найден"
-            
-        fi
-        # Настройка DNS
+        " > /etc/resolv.conf
         
-        # Установка paru
+    else
+        echo "Файл  не найден"
         
-        if [[ "$aur_choice" == "paru" ]]; then
-            
-            # зависимости для сборки paru
-            sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf 
-            
-            sudo -u "$SUDO_USER" bash -c '
+    fi
+    # Настройка DNS
+    
+    # Установка paru
+    
+    if [[ "$aur_choice" == "paru" ]]; then
+        
+        # зависимости для сборки paru
+        sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl
+        
+        sudo -u "$SUDO_USER" bash -c '
 cd ~
 git clone https://aur.archlinux.org/paru.git
 cd paru
 makepkg -si
 cd ~
 rm -rf paru
-            '
-            
-        fi
-        # Установка paru
+        '
         
-        # Установка yay
-        if [ "$aur_choice" == "yay" ]; then
-            #Создается subshell; Все команды выполняеются в отдельном процессе; Изменения не влияют на родительский процесс
-            #sudo -u - это опция конкретной команды sudo, поэтому без нее нельзя запускать
-            #-u опция, которая указывает от имени какого пользователя необходимо запустить команду
-            sudo -u "$SUDO_USER" bash -c '
+    fi
+    # Установка paru
+    
+    # Установка yay
+    if [ "$aur_choice" == "yay" ]; then
+        #Создается subshell; Все команды выполняеются в отдельном процессе; Изменения не влияют на родительский процесс
+        #sudo -u - это опция конкретной команды sudo, поэтому без нее нельзя запускать
+        #-u опция, которая указывает от имени какого пользователя необходимо запустить команду
+        sudo -u "$SUDO_USER" bash -c '
 cd ~
 git clone https://aur.archlinux.org/yay.git
 cd yay
@@ -136,20 +137,39 @@ cd ~
 rm -rf yay
 yay -Y --gendb --noconfirm && yay -Y --devel --save
 yay --version
-            '
-            #SUDO_USER - переменная системы, это пользователь, который вызвал SUDO
-            #sudo -u "$SUDO_USER" bash -c - вызывает subshell от имени пользователя, который вызвал команду sudo
-            #Все команды выполняются в отдельном subshell
-            #Кавычки должны быть одинарные
-            
-            
-            # Обновляем систему
-            yay -Syu
-            
+        '
+        #SUDO_USER - переменная системы, это пользователь, который вызвал SUDO
+        #sudo -u "$SUDO_USER" bash -c - вызывает subshell от имени пользователя, который вызвал команду sudo
+        #Все команды выполняются в отдельном subshell
+        #Кавычки должны быть одинарные
         
-    
+        
+        # Обновляем систему
+        yay -Syu
+        
+        
+        
     fi
     # Установка yay
     
     # Окончание установки aur helper
+    
+    #Установка пакетов из aur helper
+    if [ "$yay_packages" = "yes" ]; then
+        sudo -u "$SUDO_USER" bash -c "
+cd ~
+$aur_choice -S --needed --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin
+        "
+        
+        # Выполняем дополнительную команду, если выбран yay
+        if [[ $aur_choice == "yay" ]]; then
+            yay -Yc --noconfirm
+        fi
+        
+        # extra/irqbalance extra/libqalculate
+        cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
+    else
+        echo "aur packages были пропущены"
+    fi
 fi
+

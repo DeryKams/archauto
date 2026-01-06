@@ -204,7 +204,7 @@ pacman -S --needed --noconfirm mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon
 # Рабочая среда KDE
 pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
 # CMD utilities
-pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf
+pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate
 # disk management
 pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip p7zip
 # additional packages
@@ -446,9 +446,10 @@ fi
 if [ "$yay_packages" = "yes" ]; then
 sudo -u "$SUDO_USER" bash -c '
 cd ~
-yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman firefox-extension-xdman8-browser-monitor-bin extra/irqbalance extra/libqalculate
+yay -S --needed  --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman firefox-extension-xdman8-browser-monitor-bin 
 yay -Yc --noconfirm
 '
+# extra/irqbalance extra/libqalculate
 cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
 else
 echo "yay_packages был пропущен"
