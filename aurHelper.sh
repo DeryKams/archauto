@@ -108,7 +108,7 @@ nameserver 1.1.1.1
         if [[ "$aur_choice" == "paru" ]]; then
             
             # зависимости для сборки paru
-            sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot
+            sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf 
             
             sudo -u "$SUDO_USER" bash -c '
 cd ~
