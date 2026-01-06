@@ -107,7 +107,7 @@ nameserver 1.1.1.1
         
         if [[ "$aur_choice" == "paru" ]]; then
             
-            sudo pacman -S --noconfirm --needed rustup rust-wasm cargo
+            sudo pacman -S --noconfirm --needed rustup rust-wasm cargo debugedit fakeroot
             
             sudo -u "$SUDO_USER" bash -c '
 cd ~
