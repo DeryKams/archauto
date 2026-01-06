@@ -84,10 +84,13 @@ if [ $# -eq 0 ]; then
     
 fi
 
+if [[ "$aur_choice" == "none" ]]; then
+    echo "Пропуск установки aur helper"
+fi
+
 # Начало установки aur helper
 if [ "$aur_choice" != "none" ]; then
     # Проверяем, необходимо ли устанавливать aur helper
-    {
         
         # Настройка DNS
         if [ -f "/etc/resolv.conf" ]; then
@@ -136,13 +139,16 @@ rm -rf yay
 yay -Y --gendb --noconfirm && yay -Y --devel --save
 yay --version
             '
-            
-            yay -Syu
             #SUDO_USER - переменная системы, это пользователь, который вызвал SUDO
             #sudo -u "$SUDO_USER" bash -c - вызывает subshell от имени пользователя, который вызвал команду sudo
             #Все команды выполняются в отдельном subshell
             #Кавычки должны быть одинарные
-        }
+            
+            
+            # Обновляем систему
+            yay -Syu
+            
+        
     
     fi
     # Установка yay
