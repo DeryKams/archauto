@@ -341,7 +341,7 @@ else
     echo "Error: $rcconf not found."
 fi
 
-#установка yay
+# Установка yay
 if [ "$yay" = "yes" ]; then
 #проверяем равно ли значение пременной
 {
