@@ -197,8 +197,21 @@ echo "Идет установка пакетов"
 if [ "$y" == "yes" ]; then
 # Установка шрифтов 
 pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra powerline-fonts
-# Установка остальных пакетов
-pacman -S --needed --noconfirm bash-completion bottom ripgrep xf86-video-ati flatpak mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon base-devel gamemode plasma-sdk kio-extras lib32-gamemode chromium cpupower bat lsd duf dust gping openssh networkmanager git wget xdg-user-dirs pacman-contrib ntfs-3g timeshift apparmor ufw fail2ban libpwquality extra/linux-hardened-headers tor torbrowser-launcher nyx multilib/steam-native-runtime pavucontrol plasma-browser-integration gwenview filelight unrar zip power-profiles-daemon fastfetch kitty code reflector
+# установка системных утилит
+pacman -S --needed --noconfirm base-devel bash-completion git wget openssh networkmanager pacman-contrib cpupower power-profiles-daemon apparmor ufw fail2ban libpwquality reflector
+# Установка игровых пакетов
+pacman -S --needed --noconfirm xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode multilib/steam-native-runtime pavucontrol
+# Рабочая среда KDE
+pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
+# CMD utilities
+pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom
+# disk management
+pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip
+# additional packages
+pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx code chromium flatpak gwenview
+
+# если используется ядро hardened, то нужно установить заголовки - extra/linux-hardened-headers                                  
+
 else
 echo "Пакеты пропущены"
 fi
