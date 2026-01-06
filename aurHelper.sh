@@ -107,13 +107,15 @@ nameserver 1.1.1.1
         
         if [[ "$aur_choice" == "paru" ]]; then
             
-            sudo pacman -S --noconfirm --needed rustup rust-wasm cargo debugedit fakeroot
+            # зависимости для сборки paru
+            sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot
             
             sudo -u "$SUDO_USER" bash -c '
 cd ~
 git clone https://aur.archlinux.org/paru.git
 cd paru
 makepkg -si
+cd ~
 rm -rf paru
             '
             

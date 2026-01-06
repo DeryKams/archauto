@@ -200,17 +200,24 @@ pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-e
 # установка системных утилит
 pacman -S --needed --noconfirm base-devel bash-completion git wget openssh networkmanager pacman-contrib cpupower power-profiles-daemon apparmor ufw fail2ban libpwquality reflector
 # Установка игровых пакетов
-pacman -S --needed --noconfirm xf86-video-ati mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode multilib/steam-native-runtime pavucontrol
+pacman -S --needed --noconfirm mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode multilib/steam-native-runtime pavucontrol
 # Рабочая среда KDE
 pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
 # CMD utilities
-pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom
+pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf
 # disk management
-pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip
+pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip p7zip
 # additional packages
-pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx code chromium flatpak gwenview
+pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx code chromium  gwenview qbittorrent
+# codec for vlc mpv
+pacman -S --needed --noconfirm gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly
+# Установка flatpak
+pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install -y io.github.Qalculate.qalculate-qt org.telegram.desktop
 
-# если используется ядро hardened, то нужно установить заголовки - extra/linux-hardened-headers                                  
+# если используется ядро hardened, то нужно установить заголовки - extra/linux-hardened-headers       
+# поддержка старых видеокарт - xf86-video-ati                           
 
 else
 echo "Пакеты пропущены"
@@ -526,10 +533,7 @@ done
 # настройка reflector
 reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 
-# Установка flatpak
-pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils org.telegram.desktop
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install -y io.github.Qalculate.qalculate-qt org.telegram.desktop
+
 
 pacman -Scc --noconfirm
 #возможно стоит добавить выбор локалей
