@@ -2,6 +2,7 @@
 
 yay_packages="yes"
 
+
 if [ $# -eq 0 ]; then
     echo "При запуске скрипта не передан ни один аргумент."
     aur_choice="none"
@@ -143,7 +144,6 @@ yay --version
         #Все команды выполняются в отдельном subshell
         #Кавычки должны быть одинарные
         
-        
         # Обновляем систему
         yay -Syu
         
@@ -154,22 +154,23 @@ yay --version
     
     # Окончание установки aur helper
     
-    #Установка пакетов из aur helper
-    if [ "$yay_packages" = "yes" ]; then
-        sudo -u "$SUDO_USER" bash -c "
-cd ~
-$aur_choice -S --needed --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin
-        "
-        
-        # Выполняем дополнительную команду, если выбран yay
-        if [[ $aur_choice == "yay" ]]; then
-            yay -Yc --noconfirm
-        fi
-        
-        # extra/irqbalance extra/libqalculate
-        cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
-    else
-        echo "aur packages были пропущены"
-    fi
 fi
 
+#Установка пакетов из aur helper
+if [ "$yay_packages" = "yes" ]; then
+    sudo -u "$SUDO_USER" bash -c "
+cd ~
+$aur_choice -S --needed --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin
+    "
+    
+    # Выполняем дополнительную команду, если выбран yay
+    if [[ $aur_choice == "yay" ]]; then
+        yay -Yc --noconfirm
+    fi
+    
+    # extra/irqbalance extra/libqalculate
+    cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
+else
+    echo "aur packages были пропущены"
+fi
+#Установка пакетов из aur helper
