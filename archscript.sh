@@ -22,51 +22,51 @@ exec > >(tee -a "outputarchauto.log") 2>&1
 
 # выбор aur helper
 
-    aur_choice="none"
+aur_choice="none"
+
+echo "=== Выбор помощника для установки ==="
+echo ""
+echo "Пожалуйста, выберите вариант:"
+echo "1) Paru - Современный помощник для Arch Linux"
+echo "2) Yay - Yet Another Yogurt (популярный AUR-хелпер)"
+echo "3) Do not install - Не устанавливать ничего"
+echo ""
+
+read -p "Введите номер вариант (1-3): " choice
+# read - команда, которая читает ввод пользователя и сохраняет его в $REPLY
+# -p - флаг, который выводит сообщение пользовтелю перед его вводом
+# choice - переменная, в которую мы сохраняем ввод пользователя
+
+case $choice in
     
-    echo "=== Выбор помощника для установки ==="
-    echo ""
-    echo "Пожалуйста, выберите вариант:"
-    echo "1) Paru - Современный помощник для Arch Linux"
-    echo "2) Yay - Yet Another Yogurt (популярный AUR-хелпер)"
-    echo "3) Do not install - Не устанавливать ничего"
-    echo ""
+    # case - конструкция для ветвления различных условий
+    # case- начало контрукции выбора
+    # $choice - переменная, которую мы проверяем
+    # in - ключевое слово, которое обозначает начало блока условий
     
-    read -p "Введите номер вариант (1-3): " choice
-    # read - команда, которая читает ввод пользователя и сохраняет его в $REPLY
-    # -p - флаг, который выводит сообщение пользовтелю перед его вводом
-    # choice - переменная, в которую мы сохраняем ввод пользователя
+    1)
+        echo "Вы выбрали Paru в качестве помощника для установки."
+        aur_choice="paru"
+        # 1) шаблон сравнения для переменной $choice
+        
+    ;;
+    # ;; - разделитель, обозначающий конец блока условий
     
-    case $choice in
+    2)
+        echo "Вы выбрали Yay в качестве помощника для установки."
+        aur_choice="yay"
         
-        # case - конструкция для ветвления различных условий
-        # case- начало контрукции выбора
-        # $choice - переменная, которую мы проверяем
-        # in - ключевое слово, которое обозначает начало блока условий
-        
-        1)
-            echo "Вы выбрали Paru в качестве помощника для установки."
-            aur_choice="paru"
-            # 1) шаблон сравнения для переменной $choice
-            
-        ;;
-        # ;; - разделитель, обозначающий конец блока условий
-        
-        2)
-            echo "Вы выбрали Yay в качестве помощника для установки."
-            aur_choice="yay"
-            
-        ;;
-        
-        3|*)
-            echo "Вы выбрали не устанавливать помощника для установки или выбрали недопустимый параметр."
-            aur_choice="none"
-            
-        ;;
-        # * - обработка всех остальных случаев, не входящий в другие
-    esac
+    ;;
     
-    # esac - обратное написание case, обозначающее конец конструкции выбора
+    3|*)
+        echo "Вы выбрали не устанавливать помощника для установки или выбрали недопустимый параметр."
+        aur_choice="none"
+        
+    ;;
+    # * - обработка всех остальных случаев, не входящий в другие
+esac
+
+# esac - обратное написание case, обозначающее конец конструкции выбора
 # выбор aur helper
 
 
@@ -105,137 +105,137 @@ USER_RUNTIME_DIR="/run/user/$(id -u $user_nosudo)"
 
 #Проверка для создания бэкапа journal.conf
 if [ -f "$file.original" ]; then
-echo "Бэкап был уже ранее создан: $file.original"
+    echo "Бэкап был уже ранее создан: $file.original"
 else
-#Проверка существования файла
-if [ -f "$file" ]; then
-#В квадратных скобках [] прописывается условие для проверки. Необходимы пробелы после и перед скобкаби (перед и после условия проверки)
-# -f проверяет существует ли файл с именем, указанным справа
-#Создание бэкапа
-cp "$file" "$file.original"
-echo "Был создан бэкап: $file.original"
-else
-echo "Файл не найден: $file"
-fi
+    #Проверка существования файла
+    if [ -f "$file" ]; then
+        #В квадратных скобках [] прописывается условие для проверки. Необходимы пробелы после и перед скобкаби (перед и после условия проверки)
+        # -f проверяет существует ли файл с именем, указанным справа
+        #Создание бэкапа
+        cp "$file" "$file.original"
+        echo "Был создан бэкап: $file.original"
+    else
+        echo "Файл не найден: $file"
+    fi
 fi
 #Для каждого if нужен свой fi
 
 #замена SystemMaxUse
 if grep -q "^#$search_maxuse" "$file"; then
-#grep - команда поиска текста в файле
-#-q - тихий режим, grep не выводит строки, а просто сообщает о найденом совпадении
-
-sed -i "s/^#$search_maxuse=.*/$search_maxuse=$new_value_maxuse/" "$file"
-#sed -i Редактирует файл на месте
-#"s" -команда замены для sed
-# s/шаблон/замена/
-#/^ - обозначение начала строки для поиска. В замене он обозначается буквально
-# .* - регулярное выражение, которое обозначает любое выражение до перевода строки
-echo "#$search_maxuse был заменен"
+    #grep - команда поиска текста в файле
+    #-q - тихий режим, grep не выводит строки, а просто сообщает о найденом совпадении
+    
+    sed -i "s/^#$search_maxuse=.*/$search_maxuse=$new_value_maxuse/" "$file"
+    #sed -i Редактирует файл на месте
+    #"s" -команда замены для sed
+    # s/шаблон/замена/
+    #/^ - обозначение начала строки для поиска. В замене он обозначается буквально
+    # .* - регулярное выражение, которое обозначает любое выражение до перевода строки
+    echo "#$search_maxuse был заменен"
 else
-if grep -q "^$search_maxuse=" "$file"; then
-sed -i "s/^$search_maxuse=.*/$search_maxuse=$new_value_maxuse/" "$file"
-echo "*^$search_maxuse был заменен"
-else
-echo "$search_maxuse=$new_value_maxuse" >> "$file"
-echo "SystemMaxUse был добавлен в конец файла"
-fi
+    if grep -q "^$search_maxuse=" "$file"; then
+        sed -i "s/^$search_maxuse=.*/$search_maxuse=$new_value_maxuse/" "$file"
+        echo "*^$search_maxuse был заменен"
+    else
+        echo "$search_maxuse=$new_value_maxuse" >> "$file"
+        echo "SystemMaxUse был добавлен в конец файла"
+    fi
 fi
 
 #SystemMaxFileSize замена
 if grep -q "^#$search_max_file_size" "$file"; then
-
-sed -i "s/^#$search_max_file_size=.*/$search_max_file_size=$new_max_file_size/" "$file"
-#sed -i редактирвует в инлайне
-#s/шаблон/замена/
-#^-начало строки
-#.*-регулряное выражение, обозанчающие любое выражение до перевода строки
-
-echo "#$search_max_file_size был заменен на $search_max_file_size=$new_max_file_size"
-
+    
+    sed -i "s/^#$search_max_file_size=.*/$search_max_file_size=$new_max_file_size/" "$file"
+    #sed -i редактирвует в инлайне
+    #s/шаблон/замена/
+    #^-начало строки
+    #.*-регулряное выражение, обозанчающие любое выражение до перевода строки
+    
+    echo "#$search_max_file_size был заменен на $search_max_file_size=$new_max_file_size"
+    
 else
-if grep -q "^$search_max_file_size" "$file"; then
-sed -i "s/^$search_max_file_size.*/$search_max_file_size=$new_max_file_size/" "$file"
-
-echo "$search_max_file_size был заменен на $search_max_file_size=$new_max_file_size"
-
-else
-
-echo "$search_max_file_size=$new_max_file_size" >> "$file"
-echo "$search_max_file_size=$new_max_file_size был добавлен в конце $file"
-fi
+    if grep -q "^$search_max_file_size" "$file"; then
+        sed -i "s/^$search_max_file_size.*/$search_max_file_size=$new_max_file_size/" "$file"
+        
+        echo "$search_max_file_size был заменен на $search_max_file_size=$new_max_file_size"
+        
+    else
+        
+        echo "$search_max_file_size=$new_max_file_size" >> "$file"
+        echo "$search_max_file_size=$new_max_file_size был добавлен в конце $file"
+    fi
 fi
 
 
 #Создание кастомного systemctl
 if [ -f "$custom_sysctl" ]; then
-echo "$custom_sysctl уже был ранее создан"
+    echo "$custom_sysctl уже был ранее создан"
 else
-
-touch "$custom_sysctl"
-echo "$custom_sysctl создан"
+    
+    touch "$custom_sysctl"
+    echo "$custom_sysctl создан"
 fi
 
 #добавляем vm.swappiness в кастомный sysctl
 if grep -q "^$search_swappiness" "$custom_sysctl"; then
-
-sed -i "s/^$search_swappiness=.*/$search_swappiness=$new_swappiness/" "$custom_sysctl"
-
-echo "$search_swappiness бы заменен на $new_swappiness"
-
+    
+    sed -i "s/^$search_swappiness=.*/$search_swappiness=$new_swappiness/" "$custom_sysctl"
+    
+    echo "$search_swappiness бы заменен на $new_swappiness"
+    
 else
-
-echo "$search_swappiness=$new_swappiness" >> "$custom_sysctl"
-echo "$search_swappiness=$new_swappiness был добавлен в конце $custom_sysctl"
+    
+    echo "$search_swappiness=$new_swappiness" >> "$custom_sysctl"
+    echo "$search_swappiness=$new_swappiness был добавлен в конце $custom_sysctl"
 fi
 
 #добавляем vm.vfs_cache_pressure в sysctl
 if grep -q "^$search_cash_pressure" "$custom_sysctl"; then
-
-sed -i "s/^$search_cash_pressure=.*/$search_cash_pressure=$new_cash_pressure/" "$custom_sysctl"
-
-echo "$search_cash_pressure бы заменен на $new_cash_pressure"
-
+    
+    sed -i "s/^$search_cash_pressure=.*/$search_cash_pressure=$new_cash_pressure/" "$custom_sysctl"
+    
+    echo "$search_cash_pressure бы заменен на $new_cash_pressure"
+    
 else
-
-echo "$search_cash_pressure=$new_cash_pressure" >> "$custom_sysctl"
-echo "$search_cash_pressure=$new_cash_pressure бы добавлен в конце $custom_sysctl"
+    
+    echo "$search_cash_pressure=$new_cash_pressure" >> "$custom_sysctl"
+    echo "$search_cash_pressure=$new_cash_pressure бы добавлен в конце $custom_sysctl"
 fi
 
 #sysctl --system
 
 if grep -q "^$search_parallel_dow.*" "$pacman_config"; then
-
-sed -i "s/^$search_parallel_dow.*/$search_parallel_dow = $new_parallel_dow/" "$pacman_config"
-
-echo "$search_parallel_dow было заменено значение на $new_parallel_dow"
-
+    
+    sed -i "s/^$search_parallel_dow.*/$search_parallel_dow = $new_parallel_dow/" "$pacman_config"
+    
+    echo "$search_parallel_dow было заменено значение на $new_parallel_dow"
+    
 fi
 
 if grep -q "^#Color" "$pacman_config"; then
-
-sed -i "s/#Color/Color/" "$pacman_config"
-echo "Color был включен"
+    
+    sed -i "s/#Color/Color/" "$pacman_config"
+    echo "Color был включен"
 else
-if grep -q "^Color" "$pacman_config"; then
-
-echo "Color уже включен"
-else
-echo "Color" >> "$pacman_config"
-
-fi
+    if grep -q "^Color" "$pacman_config"; then
+        
+        echo "Color уже включен"
+    else
+        echo "Color" >> "$pacman_config"
+        
+    fi
 fi
 
 if grep -q "^ILoveCandy" "$pacman_config"; then
-#! инвентирует условие
-#-v -инвентирует условие. То есть если НЕ, то условие выполняется
-echo "ILoveCandy уже включен"
+    #! инвентирует условие
+    #-v -инвентирует условие. То есть если НЕ, то условие выполняется
+    echo "ILoveCandy уже включен"
 else
-
-sed -i "/^Color/a ILoveCandy" "$pacman_config"
-#-i редактирует файл на месте
-# a/ камманда append в sed, вставляет новую сроку, после найденной строки
-#шаблон вставки: "/что ищем/a что вставляем" "$file"
+    
+    sed -i "/^Color/a ILoveCandy" "$pacman_config"
+    #-i редактирует файл на месте
+    # a/ камманда append в sed, вставляет новую сроку, после найденной строки
+    #шаблон вставки: "/что ищем/a что вставляем" "$file"
 fi
 
 echo "Идет обновление системы"
@@ -245,32 +245,29 @@ echo "Обновление завершено"
 
 echo "Идет установка пакетов"
 if [ "$y" == "yes" ]; then
-# Установка шрифтов 
-pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra powerline-fonts
-# установка системных утилит
-pacman -S --needed --noconfirm base-devel bash-completion git wget openssh networkmanager pacman-contrib cpupower power-profiles-daemon apparmor ufw gufw fail2ban libpwquality reflector
-# Установка игровых пакетов
-pacman -S --needed --noconfirm mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode multilib/steam-native-runtime pavucontrol
-# Рабочая среда KDE
-pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
-# CMD utilities
-pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate
-# disk management
-pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip p7zip
-# additional packages
-pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx code chromium  gwenview qbittorrent
-# codec for vlc mpv
-pacman -S --needed --noconfirm gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly
-# Установка flatpak
-pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install -y io.github.Qalculate.qalculate-qt org.telegram.desktop
-
-# если используется ядро hardened, то нужно установить заголовки - extra/linux-hardened-headers       
-# поддержка старых видеокарт - xf86-video-ati                           
-
+    # Установка шрифтов
+    pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra powerline-fonts
+    # установка системных утилит
+    pacman -S --needed --noconfirm base-devel bash-completion git wget openssh networkmanager pacman-contrib cpupower power-profiles-daemon apparmor ufw gufw fail2ban libpwquality reflector
+    # Установка игровых пакетов
+    pacman -S --needed --noconfirm mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode multilib/steam-native-runtime pavucontrol
+    # Рабочая среда KDE
+    pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
+    # CMD utilities
+    pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate
+    # disk management
+    pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip p7zip
+    # additional packages
+    pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx code chromium  gwenview qbittorrent
+    # codec for vlc mpv
+    pacman -S --needed --noconfirm gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly
+    
+    
+    # если используется ядро hardened, то нужно установить заголовки - extra/linux-hardened-headers
+    # поддержка старых видеокарт - xf86-video-ati
+    
 else
-echo "Пакеты пропущены"
+    echo "Пакеты пропущены"
 fi
 echo "Пакеты установлены"
 
@@ -282,55 +279,55 @@ echo "Пакеты установлены"
 # ufw status verbose #Проверка статуса фаервола
 
 if [ "$y" == "yes" ]; then
-
-echo "Обновление микрокода"
-pacman -S --noconfirm amd-ucode
-mkinitcpio -P
-grub-mkconfig -o /boot/grub/grub.cfg
-
-#Нужно уточнить, нужно ли проводить процедуру после перекомпиляции ядра
+    
+    echo "Обновление микрокода"
+    pacman -S --noconfirm amd-ucode
+    mkinitcpio -P
+    grub-mkconfig -o /boot/grub/grub.cfg
+    
+    #Нужно уточнить, нужно ли проводить процедуру после перекомпиляции ядра
 else
-echo "Микрокод пропущен"
+    echo "Микрокод пропущен"
 fi
 echo "Микрокод обновлен"
 
 if [ "$grub_configurator" = "yes" ]; then
-#определяем тип файловой системы для корневого диска
-
-#Создаем переменную с командой, которая ищет строку, где смонтирован корень
-fstype_var=$(findmnt -n -o FSTYPE / 2>/dev/null || awk '$2 == "/" {print $3}' /proc/mounts)
-
-#awk - перебирает слова и строки, находит слово type и выводит следующее за ним значение
-grub_params="quiet loglevel=0 rd.systemd.show_status=auto rd.udev.log_level=0 splash rootfstype=$fstype_var selinux=0 raid=noautodetect nowatchdog"
-
-#проверяем наличие бэкапа
-if [ -f "$grab_conf.original" ]; then
-echo "Бэкап grub уже существует"
+    #определяем тип файловой системы для корневого диска
+    
+    #Создаем переменную с командой, которая ищет строку, где смонтирован корень
+    fstype_var=$(findmnt -n -o FSTYPE / 2>/dev/null || awk '$2 == "/" {print $3}' /proc/mounts)
+    
+    #awk - перебирает слова и строки, находит слово type и выводит следующее за ним значение
+    grub_params="quiet loglevel=0 rd.systemd.show_status=auto rd.udev.log_level=0 splash rootfstype=$fstype_var selinux=0 raid=noautodetect nowatchdog"
+    
+    #проверяем наличие бэкапа
+    if [ -f "$grab_conf.original" ]; then
+        echo "Бэкап grub уже существует"
+    else
+        if [ -f "$grab_conf" ]; then
+            #Создаем бэкап
+            cp "$grab_conf" "$grab_conf.original"
+            echo "Был создан бэкап $grab_conf.original"
+        else
+            echo "Конфиг grub по пути: $grab_conf не был найден"
+        fi
+    fi
+    
+    #Проверяем наличие строки
+    if grep -q "^.*$srch_grub_default.*" "$grab_conf"; then
+        
+        #изменяем строку
+        sed -i "s/^$srch_grub_default=.*/$srch_grub_default=\"$grub_params\"/" "$grab_conf"
+        
+    else
+        echo "$srch_grub_default не был найден по пути $grab_conf. Вставьте строку:\n $srch_grub_default=\"$grub_params\""
+        
+    fi
+    #создаем конфиг
+    grub-mkconfig -o /boot/grub/grub.cfg
+    
 else
-if [ -f "$grab_conf" ]; then
-#Создаем бэкап
-cp "$grab_conf" "$grab_conf.original"
-echo "Был создан бэкап $grab_conf.original"
-else
-echo "Конфиг grub по пути: $grab_conf не был найден"
-fi
-fi
-
-#Проверяем наличие строки
-if grep -q "^.*$srch_grub_default.*" "$grab_conf"; then
-
-#изменяем строку
-sed -i "s/^$srch_grub_default=.*/$srch_grub_default=\"$grub_params\"/" "$grab_conf"
-
-else
-echo "$srch_grub_default не был найден по пути $grab_conf. Вставьте строку:\n $srch_grub_default=\"$grub_params\""
-
-fi
-#создаем конфиг
-grub-mkconfig -o /boot/grub/grub.cfg
-
-else
-echo "Конфигурация grub пропущена"
+    echo "Конфигурация grub пропущена"
 fi
 
 
@@ -338,33 +335,33 @@ fi
 sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable gamemoded
 sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user start gamemoded
 sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user status gamemoded
- 
+
 
 # установка kitty с ranger
 
 echo "Installing ranger and configuring it for image previews in kitty terminal..."
 pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow
 
-#Получаем домашнюю директорию пользователя 
+#Получаем домашнюю директорию пользователя
 if [[ $EUID -eq 0 ]] && [[ -n "$SUDO_USER" ]]; then
-#$EUID - переменная, которая содержит ID текущего пользователя
-# -eq - аналог == для других языков
-# 0 - это ID суперпользователя (root)
-# [[ $EUID -eq 0 ]] - условие: если текущий пользователь - суперпользователь
-# && - логическое "и"; оба условия должны быть истинными
-# -n - проверка что строка не пустая
-# $SUDO_USER - переменная в которой храниться имя пользователя, который  запустил команду через sudo
-# [[ -n "$SUDO_USER" ]] - проверяется, что в переменной пользователя, который запустил через sudo, не пустая
-USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
-# getent - команда, которая позволяет получать записи из системных баз данных Linux, к примеру passwd, group или hosts
-# Синтаксис: getent <база данных> <ключ> - getent passwd "$SUDO_USER" 
-# getent passwd "$SUDO_USER" - ищем в справочнике passwd пользователя, который запустил команду через sudo
-# | (pipe) — это оператор, который перенаправляет вывод одной команды (getent) на вход другой
-# cut - вывод команды в поток
-# -d: - разделитель, который используется в файле passwd (записи разделены двоеточиями)
-# -f6 - вывод шестого поля, которое соответствует домашней директории пользователя
+    #$EUID - переменная, которая содержит ID текущего пользователя
+    # -eq - аналог == для других языков
+    # 0 - это ID суперпользователя (root)
+    # [[ $EUID -eq 0 ]] - условие: если текущий пользователь - суперпользователь
+    # && - логическое "и"; оба условия должны быть истинными
+    # -n - проверка что строка не пустая
+    # $SUDO_USER - переменная в которой храниться имя пользователя, который  запустил команду через sudo
+    # [[ -n "$SUDO_USER" ]] - проверяется, что в переменной пользователя, который запустил через sudo, не пустая
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    # getent - команда, которая позволяет получать записи из системных баз данных Linux, к примеру passwd, group или hosts
+    # Синтаксис: getent <база данных> <ключ> - getent passwd "$SUDO_USER"
+    # getent passwd "$SUDO_USER" - ищем в справочнике passwd пользователя, который запустил команду через sudo
+    # | (pipe) — это оператор, который перенаправляет вывод одной команды (getent) на вход другой
+    # cut - вывод команды в поток
+    # -d: - разделитель, который используется в файле passwd (записи разделены двоеточиями)
+    # -f6 - вывод шестого поля, которое соответствует домашней директории пользователя
 else
-USER_HOME="$HOME"
+    USER_HOME="$HOME"
 fi
 
 #домашняя директория пользователя содержиться в $USER_HOME
@@ -392,7 +389,7 @@ if [[ -f "$rcconf" ]]; then
         echo "set preview_images true" >> "$rcconf"
         echo "Added set preview_images true to $rcconf."
     fi
-
+    
     # Настройка preview_images_method
     if grep -q "^set preview_images_method" "$rcconf"; then
         if grep -q "^set preview_images_method $metpreview" "$rcconf"; then
@@ -405,7 +402,7 @@ if [[ -f "$rcconf" ]]; then
         echo "set preview_images_method $metpreview" >> "$rcconf"
         echo "Added set preview_images_method $metpreview to $rcconf."
     fi
-
+    
     echo "kitty terminal installed and ranger configured with image previews."
 else
     echo "Error: $rcconf not found."
@@ -479,7 +476,7 @@ yay --version
     
     
 fi
-    # Окончание установки aur helper
+# Окончание установки aur helper
 
 #Установка пакетов из aur helper
 if [ "$yay_packages" = "yes" ]; then
@@ -516,12 +513,12 @@ systemctl status power-profiles-daemon.service #Чтобы убедиться, �
 
 #Включение trim
 if [ "$trim" = "yes" ]; then
-systemctl enable --now fstrim.timer
-fstrim -va
-echo "Статус службы fstrim"
-systemctl status fstrim.timer
+    systemctl enable --now fstrim.timer
+    fstrim -va
+    echo "Статус службы fstrim"
+    systemctl status fstrim.timer
 else
-echo "trim был пропущен"
+    echo "trim был пропущен"
 fi
 
 pacman -S --noconfirm --needed openresolv
@@ -530,35 +527,35 @@ systemctl start systemd-resolved.service
 
 #объявляем функцию для включения служб
 enable_service(){
-
-local service_name="$1"
-#$1 - это первый аргумент, который передается функции
-# local - объявляем переменную, которая будет локально внутри данной функции. К примеру, чтобы она не перезаписывала глобальные 
-
-if systemctl enable --now "$service_name"; then
-echo "Service $service_name enabled and started successfully."
-
-if systemctl is-active --quiet "$service_name"; then
-# systemctl is-active - специально созданная команда для проверки статуса службы
-# --quiet - означает, что вывод будет без лишней информации, только код возврата
-    echo "Service $service_name is running."
-else
-    echo "Service $service_name is not running after enabling."
+    
+    local service_name="$1"
+    #$1 - это первый аргумент, который передается функции
+    # local - объявляем переменную, которая будет локально внутри данной функции. К примеру, чтобы она не перезаписывала глобальные
+    
+    if systemctl enable --now "$service_name"; then
+        echo "Service $service_name enabled and started successfully."
+        
+        if systemctl is-active --quiet "$service_name"; then
+            # systemctl is-active - специально созданная команда для проверки статуса службы
+            # --quiet - означает, что вывод будет без лишней информации, только код возврата
+            echo "Service $service_name is running."
+        else
+            echo "Service $service_name is not running after enabling."
             journalctl -n 5 -u "$service_name" --no-pager
-fi      
-else
-echo "Failed to enable or start service $service_name. It may already be running or not exist."
- journalctl -n 10 -u "$service_name" --no-pager
-fi
-
-
+        fi
+    else
+        echo "Failed to enable or start service $service_name. It may already be running or not exist."
+        journalctl -n 10 -u "$service_name" --no-pager
+    fi
+    
+    
 }
 # проверяем статусы служб
 #Объявляем массив для служб
 # -a - объявляем, что это массив
 # -r - объявляем, что массив является неизменяемым, то есть только для чтения
 declare -a LIST_SERVICE_CHECK=(
- "reflector.service"
+    "reflector.service"
     "reflector.timer"
     "fail2ban.service"
     "nohang-desktop.service"
@@ -566,22 +563,25 @@ declare -a LIST_SERVICE_CHECK=(
     "irqbalance.service"
 )
 
-for item in "${LIST_SERVICE_CHECK[@]}"; do 
-#for - это цикл, который перебирает элементы массива
-# item - переменная, которую мы задали конкретно для данного цикла. Туда "кладется" каждый элемент массива по очереди
-# "" - нужны для того, чтобы службы в которых присутствуют пробелы были восприняты, как единое целое, а не ка кнесколько служб
-# [@] - квадрытные скобки нужны для обращения к элементам массива, а знак @ - для обращения ко всем элементам массива
-# если просто объявить $LIST_SERVICE_CHECK, то bash возьмет только первый элемент массива, а не все
-# если использовать [*], то будет взят весь массив, как единое целое, то есть все элементы массива будут восприниматься как одна строка
-enable_service "$item"
-# enable_service - функция, которую мы ранее определили и которая берет элемент item и выполняет операции
+for item in "${LIST_SERVICE_CHECK[@]}"; do
+    #for - это цикл, который перебирает элементы массива
+    # item - переменная, которую мы задали конкретно для данного цикла. Туда "кладется" каждый элемент массива по очереди
+    # "" - нужны для того, чтобы службы в которых присутствуют пробелы были восприняты, как единое целое, а не ка кнесколько служб
+    # [@] - квадрытные скобки нужны для обращения к элементам массива, а знак @ - для обращения ко всем элементам массива
+    # если просто объявить $LIST_SERVICE_CHECK, то bash возьмет только первый элемент массива, а не все
+    # если использовать [*], то будет взят весь массив, как единое целое, то есть все элементы массива будут восприниматься как одна строка
+    enable_service "$item"
+    # enable_service - функция, которую мы ранее определили и которая берет элемент item и выполняет операции
 done
 
 
 # настройка reflector
 reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 
-
+# Установка flatpak # Нужно в конце, так как qalculate-qt будет долгим
+pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install -y io.github.Qalculate.qalculate-qt org.telegram.desktop
 
 pacman -Scc --noconfirm
 #возможно стоит добавить выбор локалей
