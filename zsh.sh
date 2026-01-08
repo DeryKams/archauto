@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # устанавливаем zsh и дополнительные пакеты
-pacman -S --needed --noconfirm zsh zsh-completions git curl fzf powerline-fonts nerd-fonts-hack zsh-syntax-highlighting
+pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highlighting zsh-autosuggestions zsh-completions
 
 
 chsh -s $(which zsh)
@@ -10,3 +10,5 @@ echo $SHELL
 
 # Установка фреймворка Oh My Zsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+echo "Для вступления изменений в силу, перезайдите в систему или выполните команду: exec zsh"
