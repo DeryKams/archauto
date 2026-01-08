@@ -9,6 +9,11 @@ chsh -s $(which zsh)
 echo $SHELL
 
 # Установка фреймворка Oh My Zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+sudo -u "$SUDO_USER" bash -c "
+cd ~
+sh -c \"\$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\" \"\" --unattended
+"
+# Необходимо экранировать кавычки внутри команды bash -c, если открывается с двойных кавычек
+
 
 echo "Для вступления изменений в силу, перезайдите в систему или выполните команду: exec zsh"
