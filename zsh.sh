@@ -25,4 +25,6 @@ else
     echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> ~/.zshrc
 fi
 
+source ~/.zshrc
+
 echo "Для вступления изменений в силу, перезайдите в систему или выполните команду: exec zsh"
