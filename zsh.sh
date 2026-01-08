@@ -16,7 +16,7 @@ chsh -s $(which zsh)
 # chsh — это команда, которая меняет оболочку входа пользователя в систему
 echo "Текущая оболочка: $SHELL"
 # Установка темы Powerlevel10k
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k
 "
 # Необходимо экранировать кавычки внутри команды bash -c, если открывается с двойных кавычек
 
