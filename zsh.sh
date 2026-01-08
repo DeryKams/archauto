@@ -3,7 +3,7 @@
 USER_HOME=$(eval echo ~$SUDO_USER)
 
 # устанавливаем zsh и дополнительные пакеты
-pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highlighting zsh-autosuggestions zsh-completions
+pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highlighting zsh-autosuggestions 
 
 
 
@@ -19,22 +19,34 @@ chsh -s $(which zsh)
 
 # Установка темы Powerlevel10k
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k
+# Установка дополнительных плагинов
+git clone https://github.com/zsh-users/zsh-completions.git  $USER_HOME/.oh-my-zsh/custom/plugins/zsh-completions
 git clone https://github.com/MichaelAquilina/zsh-you-should-use.git $USER_HOME/.oh-my-zsh/custom/plugins/you-should-use
 git clone https://github.com/Aloxaf/fzf-tab $USER_HOME/.oh-my-zsh/custom/plugins/fzf-tab
-# Replace zsh's default completion selection menu with fzf
 
-sudo -u "$SUDO_USER" bash << 'EOF'
 # Создаем симлинки на системные плагины
+sudo -u "$SUDO_USER" bash << 'EOF'
 ln -sf /usr/share/zsh/plugins/zsh-syntax-highlighting ~/.oh-my-zsh/custom/plugins/
 ln -sf /usr/share/zsh/plugins/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/
-ln -sf /usr/share/zsh/plugins/zsh-completions ~/.oh-my-zsh/custom/plugins/
 EOF
 
 if [[ -f  $USER_HOME/.zshrc ]]; then  
 # изменяем тему в .zshrc на powerlevel10k
     sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' $USER_HOME/.zshrc
 # добавляем плагины
-    sed -i 's/plugins=.*/plugins=( git zsh-syntax-highlighting zsh-autosuggestions zsh-completions extract you-should-use fzf-tab)/' $USER_HOME/.zshrc
+    sed -i 's/plugins=.*/plugins=( git zsh-syntax-highlighting zsh-autosuggestions extract you-should-use fzf-tab)/' $USER_HOME/.zshrc
+
+# Переменные для замены
+original='source "$ZSH/oh-my-zsh.sh"'
+
+replacement='fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+autoload -U compinit && compinit
+source "$ZSH/oh-my-zsh.sh"'
+
+# Выполняем замену 
+sed -i "s|$original|$replacement|" $USER_HOME/.zshrc
+
+
 else
     echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> $USER_HOME/.zshrc
 fi
