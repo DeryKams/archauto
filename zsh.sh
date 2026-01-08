@@ -5,9 +5,6 @@ USER_HOME=$(eval echo ~$SUDO_USER)
 # устанавливаем zsh и дополнительные пакеты
 pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highlighting zsh-autosuggestions 
 
-
-
-
 # Установка фреймворка Oh My Zsh
 sudo -u "$SUDO_USER" bash -c "
 cd ~
