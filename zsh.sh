@@ -15,12 +15,11 @@ sh -c \"\$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/t
 chsh -s $(which zsh)
 # chsh — это команда, которая меняет оболочку входа пользователя в систему
 echo "Текущая оболочка: $SHELL"
-# Установка темы Powerlevel10k
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k
 "
 # Необходимо экранировать кавычки внутри команды bash -c, если открывается с двойных кавычек
 
-
+# Установка темы Powerlevel10k
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k
 
 if [[ -f  $USER_HOME/.zshrc ]]; then  
     sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' $USER_HOME/.zshrc
