@@ -254,11 +254,11 @@ if [ "$y" == "yes" ]; then
     # Рабочая среда KDE
     pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
     # CMD utilities
-    pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate
+    pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate htop
     # disk management
     pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip p7zip
     # additional packages
-    pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx code chromium  gwenview qbittorrent
+    pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx code chromium  gwenview qbittorrent obsidian flameshot   
     # codec for vlc mpv
     pacman -S --needed --noconfirm gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly
     

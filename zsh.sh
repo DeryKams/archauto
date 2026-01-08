@@ -1,5 +1,7 @@
 #!/bin/bash
 
+USER_HOME=$(eval echo ~$SUDO_USER)
+
 # устанавливаем zsh и дополнительные пакеты
 pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highlighting zsh-autosuggestions zsh-completions
 
@@ -19,12 +21,12 @@ echo $SHELL
 # Установка темы Powerlevel10k
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
 
-if [[ -f "~/.zshrc" ]]; then
-    sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' ~/.zshrc
+if [[ -f  $USER_HOME/.zshrc ]]; then  
+    sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' $USER_HOME/.zshrc
 else
-    echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> ~/.zshrc
+    echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> $USER_HOME/.zshrc
 fi
 
-source ~/.zshrc
+source $USER_HOME/.zshrc
 
 echo "Для вступления изменений в силу, перезайдите в систему или выполните команду: exec zsh"
