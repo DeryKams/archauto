@@ -250,9 +250,9 @@ if [ "$y" == "yes" ]; then
     # Установка шрифтов
     pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra powerline-fonts
     # установка системных утилит
-    pacman -S --needed --noconfirm base-devel bash-completion git wget openssh networkmanager pacman-contrib cpupower power-profiles-daemon apparmor ufw gufw fail2ban libpwquality reflector
+    pacman -S --needed --noconfirm base-devel bash-completion git wget openssh networkmanager pacman-contrib cpupower power-profiles-daemon apparmor ufw gufw iptables-nft ghostscript fail2ban libpwquality reflector
     # Установка игровых пакетов
-    pacman -S --needed --noconfirm mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode multilib/steam-native-runtime pavucontrol
+    pacman -S --needed --noconfirm mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode steam pavucontrol
     # Рабочая среда KDE
     pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
     # CMD utilities
