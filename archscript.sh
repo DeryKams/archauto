@@ -256,13 +256,13 @@ if [ "$y" == "yes" ]; then
     # Рабочая среда KDE
     pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
     # CMD utilities
-    pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate htop
+    pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate htop ghostscript
     # disk management
     pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip p7zip
     # additional packages
-    pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx code chromium  gwenview qbittorrent obsidian flameshot   
+    pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx chromium  gwenview qbittorrent obsidian flameshot krusader libreoffice-fresh-ru   
     # codec for vlc mpv
-    pacman -S --needed --noconfirm gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly
+    pacman -S --needed --noconfirm gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly vlc-plugin-ffmpeg
     
     
     # если используется ядро hardened, то нужно установить заголовки - extra/linux-hardened-headers
@@ -522,7 +522,7 @@ fi
 if [ "$yay_packages" = "yes" ]; then
     sudo -u "$SUDO_USER" bash -c "
 cd ~
-$aur_choice -S --needed --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin
+$aur_choice -S --needed --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin
     "
     
     # Выполняем дополнительную команду, если выбран yay
