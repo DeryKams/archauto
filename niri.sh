@@ -408,6 +408,75 @@ fi
 paru -S --needed alacritty fuzzel mako niri swaybg swayidle swaylock waybar xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava dms-shell-niri qt6-multimedia-ffmpeg noctalia-shell-git noctalia-qs-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git flameshot-git
 #Установка пакетов из AUR
 
+# Установка и настройка greetd для входа в niri
+pacman -S --needed --noconfirm greetd greetd-tuigreet
+echo "Настраиваем greetd для входа в niri"
+
+pacman -S --needed --noconfirm greetd greetd-tuigreet
+systemctl enable greetd.service
+
+cat > /etc/greetd/config.toml <<'EOF'
+[terminal]
+vt = 1
+
+[default_session]
+command = "tuigreet --time --remember --remember-session --user-menu --cmd niri-session"
+user = "greeter"
+EOF
+
+# Установка и настройка greetd для входа в niri
+
+# TEST Добавляем значения конфига
+# Создаём директорию, если нет
+mkdir -p "$CONFIG_DIR"
+
+# Если файла нет — создаём минимальный
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Создаём новый конфиг niri"
+
+    cat > "$CONFIG_FILE" <<'EOF'
+# Минимальный конфиг niri
+
+EOF
+else
+    echo "Конфиг уже существует: $CONFIG_FILE"
+fi
+
+# Проверка swaylock
+if command -v swaylock >/dev/null 2>&1; then
+
+    if ! grep -q 'spawn "swaylock" "-f"' "$CONFIG_FILE"; then
+        echo "Добавляем биндинг блокировки"
+
+        cat >> "$CONFIG_FILE" <<'EOF'
+
+Super+L hotkey-overlay-title="Lock the Screen: swaylock" {
+    spawn "swaylock" "-f"
+}
+EOF
+    fi
+
+else
+    echo "swaylock не найден, биндинг пропущен"
+fi
+
+# Проверка swayidle
+if command -v swayidle >/dev/null 2>&1; then
+
+    if ! grep -q 'swayidle -w timeout 900' "$CONFIG_FILE"; then
+        echo "Добавляем авто-блокировку"
+
+        cat >> "$CONFIG_FILE" <<'EOF'
+
+spawn-sh-at-startup "swayidle -w timeout 900 'swaylock -f' before-sleep 'swaylock -f'"
+EOF
+    fi
+
+else
+    echo "swayidle не найден, автолок пропущен"
+fi
+#TEST Добавляем значения конфига
+
 echo "включение power-profiles-daemon.service"
 #включение профилей производительности
 systemctl unmask power-profiles-daemon.service
