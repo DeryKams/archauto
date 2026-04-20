@@ -197,7 +197,7 @@ if [ "$downloadPckg" == "yes" ]; then
 # CMD utilities
     pacman -S --needed --noconfirm \
         ripgrep bat lsd duf dust gping dos2unix jq yq \
-        fzf rclone irqbalance libqalculate htop \ wl-clipboard
+        fzf rclone irqbalance libqalculate htop \ wl-clipboard nano \ vim
 
 # disk management
     pacman -S --needed --noconfirm \
@@ -452,8 +452,10 @@ if ! command -v paru >/dev/null 2>&1; then
 fi
 # Установка paru
 
+# нужно удалить quickshell, так как он конфликтует с noctalia
+sudo pacman -Rns --noconfirm quickshell quickshell-git
 #Установка пакетов из AUR
-# paru -S --needed --noconfirm alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava dms-shell-niri qt6-multimedia-ffmpeg noctalia-shell-git noctalia-qs-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git flameshot-git
+# paru -S --needed --noconfirm alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava dms-shell-niri qt6-multimedia-ffmpeg noctalia-shell-git noctalia-qs-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git 
 #Установка пакетов из AUR
 # aur/neowall-git можно заменить на swaybg or swww-daemon
 # waybar
@@ -472,8 +474,7 @@ trap 'rm -f "$SUDOERS_FILE"' EXIT
 # --skipreview убирает "Proceed to review?"
 # --sudoloop удерживает sudo-сессию во время долгой сборки
 sudo -u "$USER_NAME" paru -S --needed --noconfirm --skipreview --sudoloop \
-    alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava dms-shell-niri qt6-multimedia-ffmpeg noctalia-shell-git noctalia-qs-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git flameshot-git
-
+    alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava dms-shell-niri qt6-multimedia-ffmpeg noctalia-shell-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git 
 
 
 # Установка и настройка greetd для входа в niri
