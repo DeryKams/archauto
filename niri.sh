@@ -197,7 +197,7 @@ if [ "$downloadPckg" == "yes" ]; then
 # CMD utilities
     pacman -S --needed --noconfirm \
         ripgrep bat lsd duf dust gping dos2unix jq yq \
-        fzf rclone irqbalance libqalculate htop
+        fzf rclone irqbalance libqalculate htop \ wl-clipboard
 
 # disk management
     pacman -S --needed --noconfirm \
@@ -386,6 +386,54 @@ else
 fi
 # Заменяем количество одновременных процессов сборки на количество доступных процессоров
 
+#TEST Копируем конфиг niri
+
+#!/bin/bash
+
+# Директория, где лежит сам скрипт
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Путь к исходному конфигу
+SOURCE_CONFIG="$SCRIPT_DIR/.niri-config/config.kdl"
+
+# Определяем домашнюю директорию пользователя
+if [[ -n "$SUDO_USER" ]]; then
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    USER_HOME="$HOME"
+fi
+
+# Целевые пути
+CONFIG_DIR="$USER_HOME/.config/niri"
+CONFIG_FILE="$CONFIG_DIR/config.kdl"
+
+# Проверка существования исходного файла
+if [[ ! -f "$SOURCE_CONFIG" ]]; then
+    echo "Ошибка: исходный конфиг не найден: $SOURCE_CONFIG"
+    exit 1
+fi
+
+# Создаём директорию
+mkdir -p "$CONFIG_DIR"
+
+# Backup
+if [[ -f "$CONFIG_FILE" ]]; then
+    BACKUP_FILE="${CONFIG_FILE}.backup.$(date +%Y%m%d%H%M%S)"
+    cp "$CONFIG_FILE" "$BACKUP_FILE"
+    echo "Создан backup: $BACKUP_FILE"
+fi
+
+# Копирование
+cp "$SOURCE_CONFIG" "$CONFIG_FILE"
+echo "Конфиг скопирован в: $CONFIG_FILE"
+
+# Права
+if [[ -n "$SUDO_USER" ]]; then
+    chown "$SUDO_USER":"$SUDO_USER" "$CONFIG_FILE"
+fi
+
+echo "Готово"
+# Копируем конфиг niri
 
 # Установка paru
 
@@ -405,8 +453,11 @@ fi
 # Установка paru
 
 #Установка пакетов из AUR
-paru -S --needed alacritty fuzzel mako niri swaybg swayidle swaylock waybar xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava dms-shell-niri qt6-multimedia-ffmpeg noctalia-shell-git noctalia-qs-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git flameshot-git
+paru -S --needed alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava dms-shell-niri qt6-multimedia-ffmpeg noctalia-shell-git noctalia-qs-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git flameshot-git
 #Установка пакетов из AUR
+# aur/neowall-git можно заменить на swaybg or swww-daemon
+
+# waybar
 
 # Установка и настройка greetd для входа в niri
 pacman -S --needed --noconfirm greetd greetd-tuigreet
@@ -428,57 +479,6 @@ EOF
 
 # TEST Добавляем значения конфига
 
-CONFIG_DIR="$USER_HOME/.config/niri"
-CONFIG_FILE="$CONFIG_DIR/config.kdl"
-
-# Создаём директорию, если нет
-mkdir -p "$CONFIG_DIR"
-
-# Если файла нет — создаём минимальный
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Создаём новый конфиг niri"
-
-    cat > "$CONFIG_FILE" <<'EOF'
-# Минимальный конфиг niri
-
-EOF
-else
-    echo "Конфиг уже существует: $CONFIG_FILE"
-fi
-
-# Проверка swaylock
-if command -v swaylock >/dev/null 2>&1; then
-
-    if ! grep -q 'spawn "swaylock" "-f"' "$CONFIG_FILE"; then
-        echo "Добавляем биндинг блокировки"
-
-        cat >> "$CONFIG_FILE" <<'EOF'
-
-Super+L hotkey-overlay-title="Lock the Screen: swaylock" {
-    spawn "swaylock" "-f"
-}
-EOF
-    fi
-
-else
-    echo "swaylock не найден, биндинг пропущен"
-fi
-
-# Проверка swayidle
-if command -v swayidle >/dev/null 2>&1; then
-
-    if ! grep -q 'swayidle -w timeout 900' "$CONFIG_FILE"; then
-        echo "Добавляем авто-блокировку"
-
-        cat >> "$CONFIG_FILE" <<'EOF'
-
-spawn-sh-at-startup "swayidle -w timeout 900 'swaylock -f' before-sleep 'swaylock -f'"
-EOF
-    fi
-
-else
-    echo "swayidle не найден, автолок пропущен"
-fi
 #TEST Добавляем значения конфига
 
 echo "включение power-profiles-daemon.service"
