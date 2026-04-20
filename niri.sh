@@ -427,6 +427,10 @@ EOF
 # Установка и настройка greetd для входа в niri
 
 # TEST Добавляем значения конфига
+
+CONFIG_DIR="$USER_HOME/.config/niri"
+CONFIG_FILE="$CONFIG_DIR/config.kdl"
+
 # Создаём директорию, если нет
 mkdir -p "$CONFIG_DIR"
 
