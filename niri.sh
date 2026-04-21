@@ -396,13 +396,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Путь к исходному конфигу
 SOURCE_CONFIG="$SCRIPT_DIR/.niri-config/config.kdl"
 
-# Определяем домашнюю директорию пользователя
-if [[ -n "$SUDO_USER" ]]; then
-    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
-else
-    USER_HOME="$HOME"
-fi
-
 # Целевые пути
 CONFIG_DIR="$USER_HOME/.config/niri"
 CONFIG_FILE="$CONFIG_DIR/config.kdl"
@@ -452,10 +445,12 @@ if ! command -v paru >/dev/null 2>&1; then
 fi
 # Установка paru
 
-# нужно удалить quickshell, так как он конфликтует с noctalia
-sudo pacman -Rns --noconfirm quickshell quickshell-git
+# нужно удалить quickshell, так как он конфликтует с noctaliadms-shell-niri
+# sudo pacman -Rns --noconfirm quickshell quickshell-git
 #Установка пакетов из AUR
-paru -S --needed --noconfirm alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava dms-shell-niri qt6-multimedia-ffmpeg noctalia-shell-git noctalia-qs-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git 
+paru -S --needed --noconfirm alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava  qt6-multimedia-ffmpeg noctalia-shell-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git 
+# dms-shell-niri
+
 #Установка пакетов из AUR
 # aur/neowall-git можно заменить на swaybg or swww-daemon
 # # waybar
