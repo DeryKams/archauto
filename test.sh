@@ -16,7 +16,8 @@ fi
 
 sudo -u "$SUDO_USER" bash -c "
 cd ~
-paru -S --needed --noconfirm alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen  cava  qt6-multimedia-ffmpeg noctalia-shell-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git 
+paru -S --needed --noconfirm alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen cava qt6-multimedia-ffmpeg noctalia-shell-git pcmanfm-qt gvfs qt6ct /
+      # kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git 
     "
 
 # Установка и настройка greetd для входа в niri
