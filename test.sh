@@ -4,7 +4,7 @@ set -e
 # CMD utilities
     pacman -S --needed --noconfirm \
         ripgrep bat lsd duf dust gping dos2unix jq yq \
-        fzf rclone irqbalance libqalculate htop \ wl-clipboard nano \ vim
+        fzf rclone irqbalance libqalculate htop wl-clipboard nano vim
 
 # установка системных утилит
 pacman -S --needed --noconfirm \
@@ -13,13 +13,12 @@ pacman -S --needed --noconfirm \
         ghostscript fail2ban libpwquality reflector \
         pipewire wireplumber pipewire-alsa pipewire-pulse pipewire-jack \
         upower \
-        bluez bluez-utils \
+        bluez bluez-utils 
 
 sudo pacman -S --needed --noconfirm \
   niri xorg-xwayland \
   greetd greetd-regreet cage \
   xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk xwayland-satellite \
-  
   fuzzel mako swayidle swaylock matugen cava \
   gvfs qt6ct qt6-multimedia-ffmpeg kvantum alacritty
 
