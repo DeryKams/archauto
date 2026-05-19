@@ -254,13 +254,13 @@ if [ "$y" == "yes" ]; then
     # Установка игровых пакетов
     pacman -S --needed --noconfirm mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode steam pavucontrol
     # Рабочая среда KDE
-    pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight
+    pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight krdc
     # CMD utilities
-    pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate htop ghostscript
+    pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate htop ghostscript fwupd fwupd-docs github-cli genact
     # disk management
     pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip p7zip
     # additional packages
-    pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx chromium  gwenview qbittorrent obsidian flameshot krusader libreoffice-fresh-ru   
+    pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx chromium  gwenview qbittorrent obsidian flameshot krusader libreoffice-fresh-ru okular man-pages man-pages-ru qrca kfind kdenlive
     # codec for vlc mpv
     pacman -S --needed --noconfirm gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly vlc-plugin-ffmpeg
     
@@ -522,7 +522,7 @@ fi
 if [ "$yay_packages" = "yes" ]; then
     sudo -u "$SUDO_USER" bash -c "
 cd ~
-$aur_choice -S --needed --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin
+$aur_choice -S --needed --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra  visual-studio-code-bin
     "
     
     # Выполняем дополнительную команду, если выбран yay

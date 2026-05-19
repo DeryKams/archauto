@@ -38,10 +38,13 @@ fi
 sudo -u "$SUDO_USER" bash -c "
 cd ~
 paru -S --needed --noconfirm neowall-git wl-clipboard-history-git noctalia-shell pcmanfm-qt \
-      nohang-git minq-ananicy-git stacer-bin xdman8-beta-git \
-      php-codesniffer-phpcsutils php-codesniffer-phpcsextra \
+      nohang-git minq-ananicy-git stacer-bin xdman8-beta-git       
     "
-      # firefox-extension-xdman8-browser-monitor-bin visual-studio-code-bin fastfetch-git 
+sudo -u "$SUDO_USER" bash -c "
+cd ~
+    php-codesniffer-phpcsutils php-codesniffer-phpcsextra \
+    firefox-extension-xdman8-browser-monitor-bin visual-studio-code-bin fastfetch-git 
+    "
 
 # Установка и настройка greetd для входа в niri
 
