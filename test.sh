@@ -54,9 +54,9 @@ echo "Настраиваем greetd для входа через ReGreet"
 systemctl enable greetd.service
 
 cat > /etc/greetd/regreet.toml <<'EOF'
-[background]
-path = "/usr/share/backgrounds/greeter.jpg"
-fit = "Cover"
+#[background]
+#path = "/usr/share/backgrounds/greeter.jpg"
+#fit = "Cover"
 
 [GTK]
 application_prefer_dark_theme = true
