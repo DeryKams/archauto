@@ -42,7 +42,7 @@ paru -S --needed --noconfirm neowall-git wl-clipboard-history-git noctalia-shell
     "
 sudo -u "$SUDO_USER" bash -c "
 cd ~
-    php-codesniffer-phpcsutils php-codesniffer-phpcsextra \
+paru -S --needed --noconfirm php-codesniffer-phpcsutils php-codesniffer-phpcsextra \
     firefox-extension-xdman8-browser-monitor-bin visual-studio-code-bin fastfetch-git 
     "
 
