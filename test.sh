@@ -15,7 +15,7 @@ pacman -S --needed --noconfirm \
         upower \
         bluez bluez-utils 
 
-sudo pacman -S --needed --noconfirm \
+ pacman -S --needed --noconfirm \
   niri xorg-xwayland \
   greetd greetd-regreet cage \
   xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk xwayland-satellite \
@@ -23,9 +23,9 @@ sudo pacman -S --needed --noconfirm \
   gvfs qt6ct qt6-multimedia-ffmpeg kvantum alacritty
 
 if ! command -v paru >/dev/null 2>&1; then
-    sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
+     pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
 
-    sudo -u "$SUDO_USER" bash -c '
+     -u "$SUDO_USER" bash -c '
         cd ~ || exit 1
         git clone https://aur.archlinux.org/paru.git
         cd paru || exit 1
@@ -35,12 +35,12 @@ if ! command -v paru >/dev/null 2>&1; then
     '
 fi
 
-sudo -u "$SUDO_USER" bash -c "
+ -u "$SUDO_USER" bash -c "
 cd ~
 paru -S --needed --noconfirm neowall-git wl-clipboard-history-git noctalia-shell pcmanfm-qt \
       nohang-git minq-ananicy-git stacer-bin xdman8-beta-git       
     "
-sudo -u "$SUDO_USER" bash -c "
+ -u "$SUDO_USER" bash -c "
 cd ~
 paru -S --needed --noconfirm php-codesniffer-phpcsutils php-codesniffer-phpcsextra \
     firefox-extension-xdman8-browser-monitor-bin visual-studio-code-bin fastfetch-git 
