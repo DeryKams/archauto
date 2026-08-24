@@ -1,0 +1,173 @@
+/* =============================================================================
+   waybar/style.css — Liquid Glass стиль для waybar
+   niri layer-rule делает blur за панелью. CSS делает фон панели прозрачным,
+   чтобы blur был виден. Иконки Nerd Fonts используются для модулей.
+   ============================================================================= */
+
+/* --- Глобальные настройки шрифта --- */
+* {
+    font-family: "JetBrains Mono Nerd Font", "Symbols Nerd Font", monospace;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* --- Фон панели: ПОЛНОСТЬЮ прозрачный ---
+   niri layer-rule с blur=true рисует blur за панелью.
+   Если waybar рисует свой фон, blur не виден.
+   Поэтому background полностью прозрачный (rgba(0,0,0,0)).
+   Полупрозрачный фон задаётся через opacity в layer-rule (0.88). */
+window#waybar {
+    background: rgba(0, 0, 0, 0);       /* полностью прозрачный — blur от niri */
+    color: #e0e0e0;                      /* светло-серый текст */
+    transition: none;
+}
+
+/* --- Базовый стиль модулей --- */
+.modules-left, .modules-center, .modules-right {
+    margin: 0 4px;                       /* отступы от краёв группы */
+}
+
+/* --- Отдельные модули: полупрозрачный фон ---
+   Каждый модуль рисуется как отдельный "чип" с легким фоном.
+   Это даёт эффект "стекла" — модули как бы лежат на прозрачной панели. */
+#workspaces, #window, #clock, #pulseaudio, #network, #bluetooth,
+#battery, #backlight, #tray {
+    padding: 0 12px;                     /* внутренние отступы */
+    margin: 4px 3px;                     /* внешние отступы (между модулями) */
+    border-radius: 10px;                 /* скруглённые углы (как у окон niri) */
+    background: rgba(255, 255, 255, 0.06); /* лёгкий белый "стеклянный" фон */
+    color: #e0e0e0;
+}
+
+/* --- Workspaces (воркспейсы niri) --- */
+#workspaces button {
+    padding: 0 8px;
+    border-radius: 8px;
+    color: #888;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+/* Активный воркспейс — ярко-голубой */
+#workspaces button.active {
+    color: #7fc8ff;
+    background: rgba(127, 200, 255, 0.15);
+    font-weight: 700;
+}
+
+/* Hover — подсветка при наведении */
+#workspaces button:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+/* Срочный воркспейс (urgent) — красный */
+#workspaces button.urgent {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.15);
+}
+
+/* --- Заголовок окна --- */
+#window {
+    color: #b0b0b0;
+    font-weight: 400;
+}
+
+/* --- Часы --- */
+#clock {
+    font-weight: 600;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Громкость --- */
+#pulseaudio {
+    color: #e0e0e0;
+}
+
+#pulseaudio.muted {
+    color: #ff6b6b;
+}
+
+/* --- Сеть --- */
+#network {
+    color: #e0e0e0;
+}
+
+#network.disconnected {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+/* --- Bluetooth --- */
+#bluetooth {
+    color: #7fc8ff;
+}
+
+#bluetooth.connected {
+    color: #7fc8ff;
+    background: rgba(127, 200, 255, 0.1);
+}
+
+/* --- Батарея --- */
+#battery {
+    color: #e0e0e0;
+}
+
+/* Зарядка — зелёная иконка */
+#battery.charging {
+    color: #98c379;
+    background: rgba(152, 195, 121, 0.1);
+}
+
+/* Предупреждение (< 30%) — жёлтый */
+#battery.warning {
+    color: #e5c07b;
+    background: rgba(229, 192, 123, 0.1);
+}
+
+/* Критический уровень (< 15%) — красный */
+#battery.critical {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.15);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Анимация пульсации для критического уровня батареи */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* --- Яркость --- */
+#backlight {
+    color: #e0c07b;
+}
+
+/* --- Трей --- */
+#tray {
+    padding: 0 8px;
+}
+
+#tray menu {
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 8px;
+    color: #e0e0e0;
+}
+
+#tray image {
+    icon-size: 16px;
+}
+
+/* --- Tooltip (всплывающие подсказки) --- */
+tooltip {
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 8px;
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 12px;
+}
+
+tooltip label {
+    color: #e0e0e0;
+}

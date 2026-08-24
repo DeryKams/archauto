@@ -184,10 +184,13 @@ if [ "$downloadPckg" == "yes" ]; then
         noto-fonts-extra powerline-fonts
 
     # установка системных утилит
+    # ~~~~ Замена: cpupower и power-profiles-daemon удалены, blueman добавлен
+    # cpupower конфликтует с TLP. ppd удаляем — ставим TLP ниже.
     pacman -S --needed --noconfirm \
-        base-devel bash-completion git wget openssh networkmanager pacman-contrib bluez bluez-utils\
-        cpupower power-profiles-daemon apparmor ufw gufw iptables-nft \
-        ghostscript fail2ban libpwquality reflector 
+        base-devel bash-completion git wget openssh networkmanager pacman-contrib bluez bluez-utils \
+        blueman apparmor ufw gufw iptables-nft \
+        ghostscript fail2ban libpwquality reflector
+    # ==== (было: cpupower power-profiles-daemon без blueman)
 
 # Установка игровых пакетов
     pacman -S --needed --noconfirm \
@@ -386,47 +389,74 @@ else
 fi
 # Заменяем количество одновременных процессов сборки на количество доступных процессоров
 
-#TEST Копируем конфиг niri
+# =============================================================================
+# Симлинки на конфиги из папки archauto в ~/.config
+# ==== Дополнение: замена копирования на симлинки + добавление waybar/fuzzel/mako
+# =============================================================================
 
-#!/bin/bash
-
-# Директория, где лежит сам скрипт
+# Директория, где лежит сам скрипт (корень репозитория archauto)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Путь к исходному конфигу
-SOURCE_CONFIG="$SCRIPT_DIR/.niri-config/config.kdl"
+# Функция создания симлинка: исходник в репо → цель в ~/.config
+# Делает backup существующего файла/ссылки перед заменой
+make_symlink() {
+    local source="$1"   # путь к файлу в репозитории
+    local target="$2"   # путь куда создаётся симлинк
 
-# Целевые пути
-CONFIG_DIR="$USER_HOME/.config/niri"
-CONFIG_FILE="$CONFIG_DIR/config.kdl"
+    if [[ ! -f "$source" ]]; then
+        echo "ПРЕДУПРЕЖДЕНИЕ: исходный файл не найден: $source"
+        return 1
+    fi
 
-# Проверка существования исходного файла
-if [[ ! -f "$SOURCE_CONFIG" ]]; then
-    echo "Ошибка: исходный конфиг не найден: $SOURCE_CONFIG"
-    exit 1
+    # Создаём родительскую директорию
+    mkdir -p "$(dirname "$target")"
+
+    # Backup существующего (если это не уже наш симлинк)
+    if [[ -L "$target" ]]; then
+        # Уже симлинк — просто перезаписываем
+        rm -f "$target"
+    elif [[ -e "$target" ]]; then
+        local backup="${target}.backup.$(date +%Y%m%d%H%M%S)"
+        cp -r "$target" "$backup"
+        echo "Создан backup: $backup"
+        rm -rf "$target"
+    fi
+
+    # Создаём симлинк
+    ln -sf "$source" "$target"
+    echo "Симлинк: $target -> $source"
+
+    # Права
+    if [[ -n "$SUDO_USER" ]]; then
+        chown -h "$SUDO_USER":"$SUDO_USER" "$target"
+    fi
+}
+
+# niri config.kdl
+make_symlink "$SCRIPT_DIR/configs/niri/config.kdl" "$USER_HOME/.config/niri/config.kdl"
+
+# waybar config + style.css
+make_symlink "$SCRIPT_DIR/configs/waybar/config" "$USER_HOME/.config/waybar/config"
+make_symlink "$SCRIPT_DIR/configs/waybar/style.css" "$USER_HOME/.config/waybar/style.css"
+
+# fuzzel
+make_symlink "$SCRIPT_DIR/configs/fuzzel/fuzzel.ini" "$USER_HOME/.config/fuzzel/fuzzel.ini"
+
+# mako
+make_symlink "$SCRIPT_DIR/configs/mako/config" "$USER_HOME/.config/mako/config"
+
+# hyprlock — конфиг блокировки экрана (liquid glass)
+# hyprlock ищет конфиг в ~/.config/hypr/hyprlock.conf
+make_symlink "$SCRIPT_DIR/configs/hyprlock/hyprlock.conf" "$USER_HOME/.config/hypr/hyprlock.conf"
+
+# greetd regreet.toml — это системный конфиг, симлинк в /etc
+if [[ -f "/etc/greetd/regreet.toml" ]] && [[ ! -L "/etc/greetd/regreet.toml" ]]; then
+    cp /etc/greetd/regreet.toml "/etc/greetd/regreet.toml.backup.$(date +%Y%m%d%H%M%S)"
 fi
+ln -sf "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
 
-# Создаём директорию
-mkdir -p "$CONFIG_DIR"
-
-# Backup
-if [[ -f "$CONFIG_FILE" ]]; then
-    BACKUP_FILE="${CONFIG_FILE}.backup.$(date +%Y%m%d%H%M%S)"
-    cp "$CONFIG_FILE" "$BACKUP_FILE"
-    echo "Создан backup: $BACKUP_FILE"
-fi
-
-# Копирование
-cp "$SOURCE_CONFIG" "$CONFIG_FILE"
-echo "Конфиг скопирован в: $CONFIG_FILE"
-
-# Права
-if [[ -n "$SUDO_USER" ]]; then
-    chown "$SUDO_USER":"$SUDO_USER" "$CONFIG_FILE"
-fi
-
-echo "Готово"
-# Копируем конфиг niri
+echo "Все симлинки созданы"
+# ==== (конец дополнения)
 
 # Установка paru
 
@@ -445,10 +475,27 @@ if ! command -v paru >/dev/null 2>&1; then
 fi
 # Установка paru
 
-# нужно удалить quickshell, так как он конфликтует с noctaliadms-shell-niri
-# sudo pacman -Rns --noconfirm quickshell quickshell-git
-#Установка пакетов из AUR
-paru -S --needed --noconfirm alacritty fuzzel mako niri neowall-git swayidle swaylock wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland  xwayland-satellite matugen cava qt6-multimedia-ffmpeg noctalia-shell-git pcmanfm-qt gvfs qt6ct kvantum nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra visual-studio-code-bin fastfetch-git 
+# ~~~~ Замена: noctalia-shell и зависимости убраны, waybar/foot/pipewire/hyprlock добавлены
+# Убрано: noctalia-shell-git matugen cava qt6-multimedia-ffmpeg qt6ct kvantum swaylock
+# Добавлено: waybar foot swaybg pipewire pipewire-pulse pipewire-alsa wireplumber
+#            polkit-gnome grim slurp papirus-icon-theme brightnessctl playerctl hyprlock
+# Оставлено: alacritty (как запасной терминал), fuzzel, mako, niri, neowall-git
+#            swayidle, wl-clipboard-history-git, xdg-desktop-portal-gnome
+#            xorg-xwayland, xwayland-satellite, pcmanfm-qt, gvfs
+# hyprlock заменяет swaylock — liquid glass блокировка с blur, часами, виджетами
+paru -S --needed --noconfirm \
+    alacritty fuzzel mako niri neowall-git swayidle \
+    wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland xwayland-satellite \
+    waybar foot swaybg \
+    pipewire pipewire-pulse pipewire-alsa wireplumber \
+    polkit-gnome grim slurp papirus-icon-theme brightnessctl playerctl \
+    hyprlock \
+    pcmanfm-qt gvfs \
+    nohang-git aur/minq-ananicy-git aur/stacer-bin \
+    xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin \
+    aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra \
+    visual-studio-code-bin fastfetch-git
+# ==== (было: noctalia-shell-git matugen cava qt6-multimedia-ffmpeg qt6ct kvantum swaylock)
 # dms-shell-niri
 
 # Установка и настройка greetd для входа в niri
@@ -459,49 +506,64 @@ echo "Настраиваем greetd для входа через ReGreet"
 # Включаем сервис логин-менеджера
 systemctl enable greetd.service
 
-cat > /etc/greetd/regreet.toml <<'EOF'
-[background]
-path = "/usr/share/backgrounds/greeter.jpg"
-fit = "Cover"
-
-[GTK]
-application_prefer_dark_theme = true
-cursor_theme_name = "Adwaita"
-cursor_blink = true
-font_name = "Inter 12"
-icon_theme_name = "Adwaita"
-theme_name = "Adwaita"
-
-[appearance]
-greeting_msg = "Welcome"
-
-[commands]
-reboot = ["systemctl", "reboot"]
-poweroff = ["systemctl", "poweroff"]
-
-[widget.clock]
-format = "%a %H:%M"
-resolution = "500ms"
-label_width = 150
-EOF
+# ~~~~ Замена: heredoc с regreet.toml убран — конфиг создаётся симлинком выше
+# Конфиг regreet.toml лежит в configs/greetd/regreet.toml
+# и линкуется в /etc/greetd/regreet.toml через make_symlink
+# ==== (было: cat > /etc/greetd/regreet.toml <<'EOF' ... EOF)
 
 # Установка и настройка greetd для входа в niri
 
 
-#TEST Добавляем значения конфига
+# =============================================================================
+# ~~~~ Замена: power-profiles-daemon → TLP (управление питанием ThinkPad)
+# TLP полностью заменяет ppd и даёт глубокий контроль над всеми подсистемами.
+# Конфиг tlp.conf лежит в configs/tlp/tlp.conf и линкуется в /etc/tlp.conf
+# =============================================================================
 
-echo "включение power-profiles-daemon.service"
-#включение профилей производительности
-systemctl unmask power-profiles-daemon.service
-systemctl enable power-profiles-daemon.service #Запуск при старте системы
-systemctl start power-profiles-daemon.service
-echo "status power-profiles-daemon.service"
-systemctl status power-profiles-daemon.service #Чтобы убедиться, что сервис запущен
+echo "Замена power-profiles-daemon на TLP"
+
+# Останавливаем и удаляем ppd
+systemctl stop power-profiles-daemon.service 2>/dev/null || true
+systemctl disable power-profiles-daemon.service 2>/dev/null || true
+pacman -Rns --noconfirm power-profiles-daemon 2>/dev/null || true
+
+# Устанавливаем TLP и зависимости
+# tlp — основной пакет управления питанием
+# tlp-rdw — Radio Device Wizard (Wi-Fi/BT on/off при подключении LAN)
+# acpi_call-dkms — модуль ядра для ThinkPad (charge thresholds, recalibration)
+# ethtool — нужен TLP для Wake-On-LAN
+# smartmontools — S.M.A.R.T. мониторинг дисков
+pacman -S --needed --noconfirm tlp tlp-rdw acpi_call-dkms ethtool smartmontools
+
+# Симлинк на конфиг TLP (вместо копирования)
+if [[ -f "/etc/tlp.conf" ]] && [[ ! -L "/etc/tlp.conf" ]]; then
+    cp /etc/tlp.conf "/etc/tlp.conf.backup.$(date +%Y%m%d%H%M%S)"
+fi
+ln -sf "$SCRIPT_DIR/configs/tlp/tlp.conf" /etc/tlp.conf
+
+# Включаем службы TLP
+systemctl enable tlp.service
+systemctl enable tlp-sleep.service
+systemctl restart tlp.service
+
+echo "TLP установлен и включён. Проверка: tlp-stat -s"
+# ==== (было: systemctl unmask/enable/start power-profiles-daemon.service)
 
 
 pacman -S --noconfirm --needed openresolv
 systemctl enable systemd-resolved.service
 systemctl start systemd-resolved.service
+
+# ==== Дополнение: pipewire user services (аудио)
+# Pipewire установлен через paru выше, но user services нужно включить явно
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
+    XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable pipewire.service
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
+    XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable pipewire-pulse.service
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
+    XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable wireplumber.service
+echo "Pipewire user services включены"
+# ==== (конец дополнения)
 
 #объявляем функцию для включения служб
 enable_service(){

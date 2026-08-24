@@ -1,0 +1,60 @@
+# =============================================================================
+# mako/config — Конфигурация daemon уведомлений
+# Liquid glass: полупрозрачный фон + скруглённые углы.
+# niri layer-rule добавляет blur за mako.
+# =============================================================================
+
+# --- Расположение ---
+# Уведомления появляются в правом нижнем углу
+output=eDP-1                    # на каком экране показывать (поменяй на свой)
+anchor=bottom-right              # позиция (bottom-right = правый нижний)
+
+# --- Размеры ---
+width=380                        # ширина уведомления (px)
+height=0                         # высота 0 = авто (по содержимому)
+margin=12                        # отступ от краёв экрана (px)
+padding=12                       # внутренний отступ (px)
+border-size=2                    # толщина рамки (px)
+border-radius=12                 # скруглённые углы (соответствует niri)
+max-visible=5                    # максимум одновременно видимых уведомлений
+max-history=50                   # максимум в истории (для mako restore)
+
+# --- Шрифт ---
+font=JetBrains Mono Nerd Font 12
+
+# --- Таймауты ---
+default-timeout=5000             # авто-скрытие через 5 секунд (мс)
+ignore-timeout=no                 # уважать timeout от приложения
+
+# --- Иконки ---
+icon-path=/usr/share/icons/Papirus  # тема иконок (нужно установить papirus-icon-theme)
+markup=yes                         # поддержка HTML разметки в тексте
+actions=yes                        # поддержка кнопок действий
+
+# --- Цвета (Catppuccin Mocha, полупрозрачный) ---
+# Формат: #RRGGBBAA (RRGGBB — цвет, AA — прозрачность 00-FF)
+background-color=1e1e2eee         # тёмно-синий фон, 93% непрозрачность
+text-color=cdd6f4ff               # светло-лавандовый текст
+border-color=89b4faff             # голубая рамка (совпадает с niri focus-ring)
+progress-color=source 89b4fa      # прогресс-бар голубым
+
+# --- Стиль ---
+# Текст уведомления: заголовок (bold) + тело (обычный)
+[urgency=low]
+background-color=1e1e2ecc         # ещё более прозрачный для низкого приоритета
+text-color=a6adc8ff               # более тёмный текст
+border-color=585b70ff
+
+[urgency=normal]
+background-color=1e1e2eee         # стандартный стиль
+text-color=cdd6f4ff
+border-color=89b4faff
+
+[urgency=critical]
+background-color=f38ba8dd         # розово-красный фон для критических
+text-color=1e1e2eff              # тёмный текст на красном фоне
+border-color=f38ba8ff             # красная рамка
+default-timeout=0                 # не скрывать автоматически (только клик)
+
+# --- История ---
+# makoctl restore — показать последние скрытые уведомления

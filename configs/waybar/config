@@ -1,0 +1,130 @@
+// =============================================================================
+// waybar/config — Конфигурация панели для liquid glass эстетики
+// niri layer-rule уже делает панель прозрачной с blur.
+// Здесь CSS делает фон панели полностью прозрачным (rgba(0,0,0,0)),
+// чтобы blur от niri был виден. Без этого waybar рисует свой фон поверх blur.
+// =============================================================================
+
+{
+    "layer": "top",             // layer-shell: top layer (над окнами, под оверлеем)
+    "position": "top",           // панель сверху
+    "height": 38,                // высота панели (px)
+    "spacing": 6,                 // отступ между модулями (px)
+    "margin-top": 8,             // отступ от верхнего края экрана (px)
+    "margin-left": 8,
+    "margin-right": 8,
+
+    // --- Модули слева ---
+    "modules-left": [
+        "niri/workspaces",        // воркспейсы niri
+        "niri/window"             // заголовок активного окна
+    ],
+
+    // --- Модули в центре ---
+    "modules-center": [
+        "clock"                   // часы
+    ],
+
+    // --- Модули справа ---
+    "modules-right": [
+        "pulseaudio",             // громкость
+        "network",                // сеть (Wi-Fi/Ethernet)
+        "bluetooth",              // Bluetooth статус
+        "battery",                // батарея
+        "backlight",              // яркость
+        "tray"                    // системный трей (иконки)
+    ],
+
+    // =========================================================================
+    // Конфигурация модулей
+    // =========================================================================
+
+    "niri/workspaces": {
+        "format": "{index}",       // показывать номер воркспейса
+        "on-click": "activate",     // клик — переключиться на воркспейс
+        "format-icons": {
+            // Иконки для воркспейсов можно настроить
+            // "1": " term",
+            // "2": " web",
+            // "3": " code",
+        }
+    },
+
+    "niri/window": {
+        "format": "{}",            // показывать заголовок активного окна
+        "max-length": 50,           // обрезать длинные заголовки
+        "rewrite": {
+            // Очистить заголовок от лишних частей
+            "(.*) — Mozilla Firefox": "$1",
+            "(.*) - foot": "$1",
+        }
+    },
+
+    "clock": {
+        "format": " {H:%M}",                              // обычный формат
+        "format-alt": " {H:%M  %d.%m.%Y}",               // альтернативный (по клику)
+        "tooltip-format": "<tt>{calendar}</tt>",          // тултип с календарём
+        "interval": 1                                      // обновление каждую секунду
+    },
+
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": " {volume}%",
+        "format-icons": {
+            "headphone": " ",
+            "hands-free": " ",
+            "headset": " ",
+            "phone": " ",
+            "portable": " ",
+            "car": " ",
+            "default": [" ", " ", " "]
+        },
+        "scroll-step": 5,                                    // шаг прокрутки (%)
+        "on-click": "pavucontrol",                           // клик — открыть микшер
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"  // ПКМ — mute
+    },
+
+    "network": {
+        "format-wifi": "  {essid}",                         // Wi-Fi: иконка + имя сети
+        "format-ethernet": "  {ipaddr}",                    // Ethernet: иконка + IP
+        "format-disconnected": "  No network",            // Нет сети
+        "tooltip-format": "{ifname} = {ipaddr}",            // тултип: интерфейс = IP
+        "format-linked": " {ifname} (No IP)",               // подключён, но без IP
+        "on-click": "nm-connection-editor"                   // клик — настройки сети
+    },
+
+    "bluetooth": {
+        "format": " ",                                       // иконка BT (меняется при подключении)
+        "format-connected": "  {device_alias}",
+        "tooltip-format": "{controller_alias}\t{controller_address}",  // тултип
+        "on-click": "blueman-manager"                        // клик — менеджер BT
+    },
+
+    "battery": {
+        "bat": "BAT0",                                        // имя батареи в sysfs
+        "states": {
+            "warning": 30,                                   // жёлтый при < 30%
+            "critical": 15                                    // красный при < 15%
+        },
+        "format": "{icon} {capacity}%",                      // обычный формат
+        "format-charging": " {capacity}%",                   // зарядка
+        "format-plugged": "  {capacity}%",                   // подключено
+        "format-icons": [" ", " ", " ", " ", " "],          // иконки по уровню
+        "format-alt": "{icon} {time}",                       // альтернативный: время до разряда
+        "tooltip-format": "{timeToH}, {power}W",             // тултип: время + мощность
+        "interval": 30                                        // обновление каждые 30 сек
+    },
+
+    "backlight": {
+        "device": "amdgpu_bl0",                               // имя backlight устройства
+        "format": "{icon} {percent}%",
+        "format-icons": [" ", " "],                        // иконки яркости
+        "on-scroll-up": "brightnessctl set +5%",
+        "on-scroll-down": "brightnessctl set 5%-"
+    },
+
+    "tray": {
+        "spacing": 8,                                         // отступ между иконками трея
+        "icon-size": 16
+    }
+}
