@@ -457,20 +457,7 @@ ln -sf "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
 echo "Все симлинки созданы"
 
 # Установка paru
-
-# Проверяем, установлен ли paru
-if ! command -v paru >/dev/null 2>&1; then
-    sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
-
-    sudo -u "$SUDO_USER" bash -c '
-        cd ~ || exit 1
-        git clone https://aur.archlinux.org/paru.git
-        cd paru || exit 1
-        makepkg -si --noconfirm --skippgpcheck
-        cd ~ || exit 1
-        rm -rf paru
-    '
-fi
+bash "$SCRIPT_DIR/parutest.sh"
 
 # Установка paru и его пакетов
 sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
@@ -602,7 +589,8 @@ reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /et
 # Установка flatpak # Нужно в конце, так как qalculate-qt будет долгим
 pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install -y flathub io.github.Qalculate.qalculate-qt org.telegram.desktop
+# Временно не устанавливаем пакеты flatpak
+# flatpak install -y flathub io.github.Qalculate.qalculate-qt org.telegram.desktop
 
 # Установка и настройка zsh с ohmyzsh
 echo "Начинаем установку и настройку zsh с ohmyzsh"
