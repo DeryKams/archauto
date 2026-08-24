@@ -391,6 +391,45 @@ else
 fi
 # Заменяем количество одновременных процессов сборки на количество доступных процессоров
 
+
+# Установка paru
+
+    
+    # зависимости для сборки paru
+pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
+    
+sudo -u "$SUDO_USER" bash -c '
+cd ~
+git clone https://aur.archlinux.org/paru.git
+cd paru
+makepkg -si
+cd ~
+rm -rf paru
+    '
+    
+
+# Установка paru
+
+# Установка paru пакетов
+sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
+    alacritty fuzzel mako niri neowall-git swayidle \
+    wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland xwayland-satellite \
+    waybar foot swaybg \
+    pipewire pipewire-pulse pipewire-alsa wireplumber \
+    polkit-gnome grim slurp papirus-icon-theme brightnessctl playerctl \
+    hyprlock \
+    pcmanfm-qt gvfs \
+    nohang-git aur/minq-ananicy-git aur/stacer-bin \
+    aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra \
+    visual-studio-code-bin fastfetch-git
+# dms-shell-niri
+# xdman8-beta-git - вызывает warning
+# firefox-extension-xdman8-browser-monitor - вызывает warning
+
+# Установка и настройка greetd для входа в niri
+pacman -S --needed --noconfirm greetd greetd-regreet cage
+
+
 # Симлинки на конфиги из папки archauto в ~/.config
 # Директория, где лежит сам скрипт (корень репозитория archauto)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -456,47 +495,23 @@ ln -sf "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
 
 echo "Все симлинки созданы"
 
-# Установка paru
+echo "Включаем seatd для Cage"
 
-    
-    # зависимости для сборки paru
-pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
-    
-sudo -u "$SUDO_USER" bash -c '
-cd ~
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -si
-cd ~
-rm -rf paru
-    '
-    
+systemctl enable seatd.service
+systemctl start seatd.service
 
-# Установка paru
+echo "Добавляем пользователей в группу seat"
+usermod -aG seat greeter
 
-# Установка paru пакетов
-sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
-    alacritty fuzzel mako niri neowall-git swayidle \
-    wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland xwayland-satellite \
-    waybar foot swaybg \
-    pipewire pipewire-pulse pipewire-alsa wireplumber \
-    polkit-gnome grim slurp papirus-icon-theme brightnessctl playerctl \
-    hyprlock \
-    pcmanfm-qt gvfs \
-    nohang-git aur/minq-ananicy-git aur/stacer-bin \
-    xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin \
-    aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra \
-    visual-studio-code-bin fastfetch-git
-# dms-shell-niri
-
-# Установка и настройка greetd для входа в niri
-pacman -S --needed --noconfirm greetd greetd-regreet cage
+# добавляем обычного пользователя в группу seat для удобства
+usermod -aG seat "$SUDO_USER"
+# Перезапускаем greetd, чтобы изменения вступили в силу
+systemctl restart greetd.service
 
 echo "Настраиваем greetd для входа через ReGreet"
 
 # Включаем сервис логин-менеджера
 systemctl enable greetd.service
-
 
 # Установка и настройка greetd для входа в niri
 # Конфиг tlp.conf лежит в configs/tlp/tlp.conf и линкуется в /etc/tlp.conf
@@ -618,8 +633,10 @@ pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highl
 sudo -u "$SUDO_USER" bash << 'OHEOF'
 cd ~ || exit 1
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-chsh -s "$(which zsh)"
 OHEOF
+
+# Изменяем оболочку от имени root
+chsh -s "$(which zsh)" "$SUDO_USER"
 
 # Необходимо экранировать кавычки внутри команды bash -c, если открывается с двойных кавычек
 
