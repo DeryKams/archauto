@@ -198,7 +198,7 @@ if [ "$downloadPckg" == "yes" ]; then
     pacman -S --needed --noconfirm \
         ripgrep bat lsd duf dust gping dos2unix jq yq \
         fzf rclone irqbalance libqalculate htop \
-        wl-clipboard nano vim
+        wl-clipboard nano vim qrencode
 
 # disk management
     pacman -S --needed --noconfirm \
@@ -224,7 +224,6 @@ if [ "$cpuUpd" == "yes" ]; then
     echo "Обновление микрокода"
     pacman -S --noconfirm amd-ucode
     mkinitcpio -P
-    grub-mkconfig -o /boot/grub/grub.cfg
     echo "Микрокод обновлен"
 
 
@@ -266,6 +265,11 @@ if [ "$grub_configurator" = "yes" ]; then
 
     fi
     #создаем конфиг
+    if grep -q "^GRUB_DISABLE_OS_PROBER=" "$grab_conf"; then
+        sed -i 's/^GRUB_DISABLE_OS_PROBER=.*/GRUB_DISABLE_OS_PROBER=true/' "$grab_conf"
+    else
+        echo 'GRUB_DISABLE_OS_PROBER=true' >> "$grab_conf"
+    fi
     grub-mkconfig -o /boot/grub/grub.cfg
 
 else
@@ -454,7 +458,7 @@ echo "Все симлинки созданы"
 
 # Установка paru
 
-# Проверяем, установлен ли paru. Если нет — ставим.
+# Проверяем, установлен ли paru
 if ! command -v paru >/dev/null 2>&1; then
     sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
 
@@ -648,6 +652,13 @@ sed -i "s|$original|$replacement|" $USER_HOME/.zshrc
 
 else
     echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> $USER_HOME/.zshrc
+fi
+
+# Вставляем содержимое custom.zsh в конец .zshrc (если ещё не вставлено)
+if ! grep -q 'pwgen()' "$USER_HOME/.zshrc"; then
+    echo '' >> "$USER_HOME/.zshrc"
+    cat "$SCRIPT_DIR/configs/zsh/custom.zsh" >> "$USER_HOME/.zshrc"
+    echo "custom.zsh вставлен в конец .zshrc"
 fi
 
 
