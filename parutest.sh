@@ -2,11 +2,6 @@
 
 exec > >(tee -a "parutest.log") 2>&1
 
-if [[ -z "$SUDO_USER" ]]; then
-    echo "Скрипт нужно запускать через sudo от обычного пользователя."
-    exit 1
-fi
-
 user_nosudo="$SUDO_USER"
 
 echo "=== Проверка установлен ли paru ==="

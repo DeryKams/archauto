@@ -457,9 +457,24 @@ ln -sf "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
 echo "Все симлинки созданы"
 
 # Установка paru
-bash "$SCRIPT_DIR/parutest.sh"
 
-# Установка paru и его пакетов
+    
+    # зависимости для сборки paru
+pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
+    
+sudo -u "$SUDO_USER" bash -c '
+cd ~
+git clone https://aur.archlinux.org/paru.git
+cd paru
+makepkg -si
+cd ~
+rm -rf paru
+    '
+    
+
+# Установка paru
+
+# Установка paru пакетов
 sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
     alacritty fuzzel mako niri neowall-git swayidle \
     wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland xwayland-satellite \
