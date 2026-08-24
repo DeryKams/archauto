@@ -184,13 +184,10 @@ if [ "$downloadPckg" == "yes" ]; then
         noto-fonts-extra powerline-fonts
 
     # установка системных утилит
-    # ~~~~ Замена: cpupower и power-profiles-daemon удалены, blueman добавлен
-    # cpupower конфликтует с TLP. ppd удаляем — ставим TLP ниже.
     pacman -S --needed --noconfirm \
         base-devel bash-completion git wget openssh networkmanager pacman-contrib bluez bluez-utils \
         blueman apparmor ufw gufw iptables-nft \
         ghostscript fail2ban libpwquality reflector
-    # ==== (было: cpupower power-profiles-daemon без blueman)
 
 # Установка игровых пакетов
     pacman -S --needed --noconfirm \
@@ -200,7 +197,8 @@ if [ "$downloadPckg" == "yes" ]; then
 # CMD utilities
     pacman -S --needed --noconfirm \
         ripgrep bat lsd duf dust gping dos2unix jq yq \
-        fzf rclone irqbalance libqalculate htop \ wl-clipboard nano \ vim
+        fzf rclone irqbalance libqalculate htop \
+        wl-clipboard nano vim
 
 # disk management
     pacman -S --needed --noconfirm \
@@ -389,11 +387,7 @@ else
 fi
 # Заменяем количество одновременных процессов сборки на количество доступных процессоров
 
-# =============================================================================
 # Симлинки на конфиги из папки archauto в ~/.config
-# ==== Дополнение: замена копирования на симлинки + добавление waybar/fuzzel/mako
-# =============================================================================
-
 # Директория, где лежит сам скрипт (корень репозитория archauto)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -450,13 +444,13 @@ make_symlink "$SCRIPT_DIR/configs/mako/config" "$USER_HOME/.config/mako/config"
 make_symlink "$SCRIPT_DIR/configs/hyprlock/hyprlock.conf" "$USER_HOME/.config/hypr/hyprlock.conf"
 
 # greetd regreet.toml — это системный конфиг, симлинк в /etc
+mkdir -p /etc/greetd
 if [[ -f "/etc/greetd/regreet.toml" ]] && [[ ! -L "/etc/greetd/regreet.toml" ]]; then
     cp /etc/greetd/regreet.toml "/etc/greetd/regreet.toml.backup.$(date +%Y%m%d%H%M%S)"
 fi
 ln -sf "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
 
 echo "Все симлинки созданы"
-# ==== (конец дополнения)
 
 # Установка paru
 
@@ -468,22 +462,14 @@ if ! command -v paru >/dev/null 2>&1; then
         cd ~ || exit 1
         git clone https://aur.archlinux.org/paru.git
         cd paru || exit 1
-        makepkg -si --noconfirm
+        makepkg -si --noconfirm --skippgpcheck
         cd ~ || exit 1
         rm -rf paru
     '
 fi
-# Установка paru
 
-# ~~~~ Замена: noctalia-shell и зависимости убраны, waybar/foot/pipewire/hyprlock добавлены
-# Убрано: noctalia-shell-git matugen cava qt6-multimedia-ffmpeg qt6ct kvantum swaylock
-# Добавлено: waybar foot swaybg pipewire pipewire-pulse pipewire-alsa wireplumber
-#            polkit-gnome grim slurp papirus-icon-theme brightnessctl playerctl hyprlock
-# Оставлено: alacritty (как запасной терминал), fuzzel, mako, niri, neowall-git
-#            swayidle, wl-clipboard-history-git, xdg-desktop-portal-gnome
-#            xorg-xwayland, xwayland-satellite, pcmanfm-qt, gvfs
-# hyprlock заменяет swaylock — liquid glass блокировка с blur, часами, виджетами
-paru -S --needed --noconfirm \
+# Установка paru и его пакетов
+sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
     alacritty fuzzel mako niri neowall-git swayidle \
     wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland xwayland-satellite \
     waybar foot swaybg \
@@ -495,7 +481,6 @@ paru -S --needed --noconfirm \
     xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin \
     aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra \
     visual-studio-code-bin fastfetch-git
-# ==== (было: noctalia-shell-git matugen cava qt6-multimedia-ffmpeg qt6ct kvantum swaylock)
 # dms-shell-niri
 
 # Установка и настройка greetd для входа в niri
@@ -506,19 +491,9 @@ echo "Настраиваем greetd для входа через ReGreet"
 # Включаем сервис логин-менеджера
 systemctl enable greetd.service
 
-# ~~~~ Замена: heredoc с regreet.toml убран — конфиг создаётся симлинком выше
-# Конфиг regreet.toml лежит в configs/greetd/regreet.toml
-# и линкуется в /etc/greetd/regreet.toml через make_symlink
-# ==== (было: cat > /etc/greetd/regreet.toml <<'EOF' ... EOF)
 
 # Установка и настройка greetd для входа в niri
-
-
-# =============================================================================
-# ~~~~ Замена: power-profiles-daemon → TLP (управление питанием ThinkPad)
-# TLP полностью заменяет ppd и даёт глубокий контроль над всеми подсистемами.
 # Конфиг tlp.conf лежит в configs/tlp/tlp.conf и линкуется в /etc/tlp.conf
-# =============================================================================
 
 echo "Замена power-profiles-daemon на TLP"
 
@@ -543,18 +518,15 @@ ln -sf "$SCRIPT_DIR/configs/tlp/tlp.conf" /etc/tlp.conf
 
 # Включаем службы TLP
 systemctl enable tlp.service
-systemctl enable tlp-sleep.service
 systemctl restart tlp.service
 
 echo "TLP установлен и включён. Проверка: tlp-stat -s"
-# ==== (было: systemctl unmask/enable/start power-profiles-daemon.service)
 
 
 pacman -S --noconfirm --needed openresolv
 systemctl enable systemd-resolved.service
 systemctl start systemd-resolved.service
 
-# ==== Дополнение: pipewire user services (аудио)
 # Pipewire установлен через paru выше, но user services нужно включить явно
 sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
     XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable pipewire.service
@@ -563,7 +535,6 @@ sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus
 sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
     XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable wireplumber.service
 echo "Pipewire user services включены"
-# ==== (конец дополнения)
 
 #объявляем функцию для включения служб
 enable_service(){
@@ -598,21 +569,26 @@ declare -a LIST_SERVICE_CHECK=(
     "reflector.service"
     "reflector.timer"
     "fail2ban.service"
+    "irqbalance.service"
+)
+
+# Службы из AUR — включаются только если пакет установлен
+declare -a AUR_SERVICE_CHECK=(
     "nohang-desktop.service"
     "ananicy.service"
-    "irqbalance.service"
 )
 
 
 for item in "${LIST_SERVICE_CHECK[@]}"; do
-    #for - это цикл, который перебирает элементы массива
-    # item - переменная, которую мы задали конкретно для данного цикла. Туда "кладется" каждый элемент массива по очереди
-    # "" - нужны для того, чтобы службы в которых присутствуют пробелы были восприняты, как единое целое, а не ка кнесколько служб
-    # [@] - квадрытные скобки нужны для обращения к элементам массива, а знак @ - для обращения ко всем элементам массива
-    # если просто объявить $LIST_SERVICE_CHECK, то bash возьмет только первый элемент массива, а не все
-    # если использовать [*], то будет взят весь массив, как единое целое, то есть все элементы массива будут восприниматься как одна строка
     enable_service "$item"
-    # enable_service - функция, которую мы ранее определили и которая берет элемент item и выполняет операции
+done
+
+for item in "${AUR_SERVICE_CHECK[@]}"; do
+    if systemctl list-unit-files "$item" 2>/dev/null | grep -q "$item"; then
+        enable_service "$item"
+    else
+        echo "Service $item not found — AUR package may not be installed. Skipping."
+    fi
 done
 
 
@@ -632,21 +608,20 @@ echo "Начинаем установку и настройку zsh с ohmyzsh"
 pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highlighting zsh-autosuggestions
 
 # Установка фреймворка Oh My Zsh
-sudo -u "$SUDO_USER" bash -c '
-cd ~
-sh -c \"\$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\" \"\" --unattended
-chsh -s $(which zsh)
-# chsh — это команда, которая меняет оболочку входа пользователя в систему
-'
+sudo -u "$SUDO_USER" bash << 'OHEOF'
+cd ~ || exit 1
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+chsh -s "$(which zsh)"
+OHEOF
 
 # Необходимо экранировать кавычки внутри команды bash -c, если открывается с двойных кавычек
 
 # Установка темы Powerlevel10k
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k"
+sudo -u "$SUDO_USER" git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k"
 # Установка дополнительных плагинов
-git clone https://github.com/zsh-users/zsh-completions.git  $USER_HOME/.oh-my-zsh/custom/plugins/zsh-completions
-git clone https://github.com/MichaelAquilina/zsh-you-should-use.git $USER_HOME/.oh-my-zsh/custom/plugins/you-should-use
-git clone https://github.com/Aloxaf/fzf-tab $USER_HOME/.oh-my-zsh/custom/plugins/fzf-tab
+sudo -u "$SUDO_USER" git clone https://github.com/zsh-users/zsh-completions.git "$USER_HOME/.oh-my-zsh/custom/plugins/zsh-completions"
+sudo -u "$SUDO_USER" git clone https://github.com/MichaelAquilina/zsh-you-should-use.git "$USER_HOME/.oh-my-zsh/custom/plugins/you-should-use"
+sudo -u "$SUDO_USER" git clone https://github.com/Aloxaf/fzf-tab "$USER_HOME/.oh-my-zsh/custom/plugins/fzf-tab"
 
 # Создаем симлинки на системные плагины
 sudo -u "$SUDO_USER" bash << 'EOF'
