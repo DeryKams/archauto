@@ -393,21 +393,30 @@ fi
 
 
 # Установка paru
+# Проверяем, установлен ли paru. Если команда не найдена — начинаем сборку.
+if ! command -v paru >/dev/null 2>&1; then
+    # Устанавливаем зависимости для сборки. 
+    # Скрипт уже работает от root, поэтому sudo не нужен.
+    # Пакет rust-wasm убран, так как для paru достаточно базовых rust и cargo.
+    pacman -S --noconfirm --needed rust cargo debugedit fakeroot pkgconf openssl git base-devel
 
-    
-    # зависимости для сборки paru
-pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
-    
-sudo -u "$SUDO_USER" bash -c '
-cd ~
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -si
-cd ~
-rm -rf paru
+    # Собираем пакет от имени обычного пользователя.
+    sudo -u "$SUDO_USER" bash -c '
+        cd ~ || exit 1
+        git clone https://aur.archlinux.org/paru.git
+        cd paru || exit 1
+        # Флаг -s сам подтянет недостающие зависимости через pacman
+        makepkg -s --noconfirm
     '
-    
+    # Устанавливаем собранные пакеты от имени root.
+    pacman -U --noconfirm "$USER_HOME"/paru/paru-*.pkg.tar.zst
 
+    # Очищаем домашнюю папку.
+    sudo -u "$SUDO_USER" rm -rf "$USER_HOME/paru"
+else
+    # Ветвь else важна для идемпотентности скрипта.
+    echo "paru уже установлен в системе, пропускаем этап сборки."
+fi
 # Установка paru
 
 # Установка paru пакетов
