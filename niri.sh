@@ -495,34 +495,7 @@ make_symlink "$SCRIPT_DIR/configs/mako/config" "$USER_HOME/.config/mako/config"
 # hyprlock ищет конфиг в ~/.config/hypr/hyprlock.conf
 make_symlink "$SCRIPT_DIR/configs/hyprlock/hyprlock.conf" "$USER_HOME/.config/hypr/hyprlock.conf"
 
-# greetd regreet.toml — это системный конфиг, симлинк в /etc
-mkdir -p /etc/greetd
-if [[ -f "/etc/greetd/regreet.toml" ]] && [[ ! -L "/etc/greetd/regreet.toml" ]]; then
-    cp /etc/greetd/regreet.toml "/etc/greetd/regreet.toml.backup.$(date +%Y%m%d%H%M%S)"
-fi
-ln -sf "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
-
-echo "Все симлинки созданы"
-
-echo "Включаем seatd для Cage"
-
-systemctl enable seatd.service
-systemctl start seatd.service
-
-echo "Добавляем пользователей в группу seat"
-usermod -aG seat greeter
-
-# добавляем обычного пользователя в группу seat для удобства
-usermod -aG seat "$SUDO_USER"
-# Перезапускаем greetd, чтобы изменения вступили в силу
-systemctl restart greetd.service
-
-echo "Настраиваем greetd для входа через ReGreet"
-
-# Включаем сервис логин-менеджера
-systemctl enable greetd.service
-
-# Установка и настройка greetd для входа в niri
+# Установка и настройка niri
 # Конфиг tlp.conf лежит в configs/tlp/tlp.conf и линкуется в /etc/tlp.conf
 
 echo "Замена power-profiles-daemon на TLP"
@@ -622,9 +595,6 @@ for item in "${AUR_SERVICE_CHECK[@]}"; do
 done
 
 
-# настройка reflector
-reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
-
 # Установка flatpak # Нужно в конце, так как qalculate-qt будет долгим
 pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -698,3 +668,35 @@ echo "Для вступления изменений в силу, перезай
 echo "Если вас не устраивает устанволенная локаль, то прмините команды
 sudo nano /etc/locale.gen          # Редактирование локалей
 sudo locale-gen                    # Генерация локалей"
+
+
+# настройка reflector
+reflector --country 'Germany' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
+
+
+# greetd regreet.toml — это системный конфиг, симлинк в /etc
+mkdir -p /etc/greetd
+if [[ -f "/etc/greetd/regreet.toml" ]] && [[ ! -L "/etc/greetd/regreet.toml" ]]; then
+    cp /etc/greetd/regreet.toml "/etc/greetd/regreet.toml.backup.$(date +%Y%m%d%H%M%S)"
+fi
+ln -sf "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
+
+echo "Все симлинки созданы"
+
+echo "Включаем seatd для Cage"
+
+systemctl enable seatd.service
+systemctl start seatd.service
+
+echo "Добавляем пользователей в группу seat"
+usermod -aG seat greeter
+
+# добавляем обычного пользователя в группу seat для удобства
+usermod -aG seat "$SUDO_USER"
+# Перезапускаем greetd, чтобы изменения вступили в силу
+systemctl restart greetd.service
+
+echo "Настраиваем greetd для входа через ReGreet"
+
+# Включаем сервис логин-менеджера
+systemctl enable greetd.service
