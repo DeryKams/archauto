@@ -391,33 +391,10 @@ else
 fi
 # Заменяем количество одновременных процессов сборки на количество доступных процессоров
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Установка paru
-# Проверяем, установлен ли paru. Если команда не найдена — начинаем сборку.
-if ! command -v paru >/dev/null 2>&1; then
-    # Устанавливаем зависимости для сборки. 
-    # Скрипт уже работает от root, поэтому sudo не нужен.
-    # Пакет rust-wasm убран, так как для paru достаточно базовых rust и cargo.
-    pacman -S --noconfirm --needed rust cargo debugedit fakeroot pkgconf openssl git base-devel
-
-    # Собираем пакет от имени обычного пользователя.
-    sudo -u "$SUDO_USER" bash -c '
-        cd ~ || exit 1
-        git clone https://aur.archlinux.org/paru.git
-        cd paru || exit 1
-        # Флаг -s сам подтянет недостающие зависимости через pacman
-        makepkg -s --noconfirm
-    '
-    # Устанавливаем собранные пакеты от имени root.
-    pacman -U --noconfirm "$USER_HOME"/paru/paru-*.pkg.tar.zst
-
-    # Очищаем домашнюю папку.
-    sudo -u "$SUDO_USER" rm -rf "$USER_HOME/paru"
-else
-    # Ветвь else важна для идемпотентности скрипта.
-    echo "paru уже установлен в системе, пропускаем этап сборки."
-fi
-# Установка paru
+bash "$SCRIPT_DIR/parutest.sh"
 
 # Установка paru пакетов
 sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
@@ -440,9 +417,6 @@ pacman -S --needed --noconfirm greetd greetd-regreet cage
 
 
 # Симлинки на конфиги из папки archauto в ~/.config
-# Директория, где лежит сам скрипт (корень репозитория archauto)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 # Функция создания симлинка: исходник в репо → цель в ~/.config
 # Делает backup существующего файла/ссылки перед заменой
 make_symlink() {
@@ -674,12 +648,12 @@ sudo locale-gen                    # Генерация локалей"
 reflector --country 'Germany' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 
 
-# greetd regreet.toml — это системный конфиг, симлинк в /etc
+# greetd regreet.toml — копируем, не симлинк (пользователь greeter не имеет доступа к /home)
 mkdir -p /etc/greetd
 if [[ -f "/etc/greetd/regreet.toml" ]] && [[ ! -L "/etc/greetd/regreet.toml" ]]; then
     cp /etc/greetd/regreet.toml "/etc/greetd/regreet.toml.backup.$(date +%Y%m%d%H%M%S)"
 fi
-ln -sf "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
+install -Dm644 "$SCRIPT_DIR/configs/greetd/regreet.toml" /etc/greetd/regreet.toml
 
 echo "Все симлинки созданы"
 
@@ -688,15 +662,22 @@ echo "Включаем seatd для Cage"
 systemctl enable seatd.service
 systemctl start seatd.service
 
-echo "Добавляем пользователей в группу seat"
-usermod -aG seat greeter
+echo "Добавляем пользователя greeter в группы seat, video, input"
+usermod -aG seat,video,input greeter
 
-# добавляем обычного пользователя в группу seat для удобства
 usermod -aG seat "$SUDO_USER"
-# Перезапускаем greetd, чтобы изменения вступили в силу
-systemctl restart greetd.service
 
-echo "Настраиваем greetd для входа через ReGreet"
+echo "Создаём /etc/greetd/config.toml для cage + regreet"
+cat > /etc/greetd/config.toml <<'EOF'
+[terminal]
+vt = 1
 
-# Включаем сервис логин-менеджера
+[default_session]
+command = "cage -s -- regreet"
+user = "greeter"
+EOF
+
 systemctl enable greetd.service
+
+echo "Устанавливаем graphical.target как цель загрузки по умолчанию"
+systemctl set-default graphical.target
