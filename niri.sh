@@ -500,9 +500,9 @@ systemctl restart tlp.service
 echo "TLP установлен и включён. Проверка: tlp-stat -s"
 
 
-pacman -S --noconfirm --needed openresolv
-systemctl enable systemd-resolved.service
-systemctl start systemd-resolved.service
+# pacman -S --noconfirm --needed openresolv
+# systemctl enable systemd-resolved.service
+# systemctl start systemd-resolved.service
 
 # Pipewire установлен через paru выше, но user services нужно включить явно
 sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
