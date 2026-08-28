@@ -426,7 +426,48 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Установка paru
-bash "$SCRIPT_DIR/parutest.sh"
+if command -v paru >/dev/null 2>&1; then
+    # paru найден в PATH — установка не нужна
+    echo "paru уже установлен: $(paru --version)"
+else
+    echo "paru не найден — начинаем установку"
+
+    echo "=== Установка зависимостей ==="
+    # base-devel и git нужны для makepkg и клонирования репозитория,
+    # rust и cargo нужны потому что paru написан на Rust
+    sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
+
+    echo "=== Сборка и установка paru из AUR ==="
+    # Переключаемся на обычного пользователя, так как makepkg от root не работает
+    sudo -u "$user_nosudo" bash -c '
+        cd ~ || exit 1
+        # Если от прошлого запуска осталась папка paru, удаляем её,
+        # иначе git clone упадёт с ошибкой "destination path already exists"
+        rm -rf paru
+        git clone https://aur.archlinux.org/paru.git || exit 1
+        cd paru || exit 1
+        # -s сам доставит недостающие зависимости сборки,
+        # -i установит готовый пакет в систему,
+        # --skippgpcheck пропускает проверку PGP-подписей (у paru в PKGBUILD их нет, флаг необязательный)
+        makepkg -si --noconfirm --skippgpcheck
+        cd ~ || exit 1
+        rm -rf paru
+    '
+
+    echo "=== Проверка результата ==="
+    # hash -r очищает кэш путей к командам в bash,
+    # чтобы интерпретатор сразу увидел свежеустановленный бинарник
+    hash -r
+    if command -v paru >/dev/null 2>&1; then
+        echo "paru успешно установлен: $(paru --version)"
+    else
+        echo "ОШИБКА: paru не установлен после сборки"
+        # Ненулевой код выхода позволит вызывающему скрипту понять, что случилась авария
+        exit 1
+    fi
+fi
+# Установка paru
+
 
 # Установка paru пакетов
 sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
@@ -609,7 +650,6 @@ flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flat
 
 # Установка и настройка zsh с ohmyzsh
 echo "Начинаем установку и настройку zsh с ohmyzsh"
-
 
 # устанавливаем zsh и дополнительные пакеты
 pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highlighting zsh-autosuggestions
