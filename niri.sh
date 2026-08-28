@@ -2,9 +2,41 @@
 
 exec > >(tee -a "niriauto.log") 2>&1
 
+
 if [[ -z "$SUDO_USER" ]]; then
     echo "Скрипт нужно запускать через sudo от обычного пользователя."
     exit 1
+fi
+
+# systemd-detect-virt печатает тип виртуализации: vmware, kvm, virtualbox и т.д.
+# Если виртуализации нет, он печатает none
+VIRT="$(systemd-detect-virt 2>/dev/null || echo none)"
+
+# Флаг, по которому дальше будем включать "мягкие" настройки рендеринга
+if [[ "$VIRT" != "none" ]]; then
+    echo "Обнаружена виртуализация: $VIRT, включаю программный рендеринг"
+    VM_MODE="yes"
+    # Если есть, то ищем вставку для виртуальной машины greetd
+else
+    VM_MODE="no"
+fi
+
+if [[ "$VM_MODE" == "yes" ]]; then
+    # Каталог для переопределений юнита greetd
+    mkdir -p /etc/systemd/system/greetd.service.d
+
+    cat > /etc/systemd/system/greetd.service.d/99-vm-render.conf <<'EOF'
+[Service]
+# Заставляет Mesa использовать llvmpipe вместо dmabuf в vmwgfx
+Environment=LIBGL_ALWAYS_SOFTWARE=1
+# Для wlroots-композиторов (cage): рендерер pixman вообще без EGL
+Environment=WLR_RENDERER=pixman
+# В VM аппаратный курсор часто не работает, рисуем курсор программно
+Environment=WLR_NO_HARDWARE_CURSORS=1
+EOF
+
+    # systemd должен перечитать переопределения
+    systemctl daemon-reload
 fi
 
 user_nosudo="$SUDO_USER"

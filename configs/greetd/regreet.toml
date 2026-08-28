@@ -1,26 +1,20 @@
-# =============================================================================
-# regreet.toml — Экран входа greetd/regreet
+# regreet.toml — экран входа greetd/regreet
 # Стилизован под hyprlock: те же шрифт, цвета, обои
-# =============================================================================
 
 [background]
-# ~~~~ Замена: путь к обоим синхронизирован с hyprlock
-# Используем тот же файл что и для hyprlock (screenshot не доступен на экране входа)
+# Путь к обоям общий с hyprlock (screenshot недоступен на экране входа)
 path = "/usr/share/backgrounds/greeter.jpg"
-# ==== (было: то же, но теперь обои единый источник для обоих экранов)
 fit = "Cover"
 
 [GTK]
 application_prefer_dark_theme = true
 cursor_theme_name = "Adwaita"
 cursor_blink = true
-# ~~~~ Замена: шрифт синхронизирован с hyprlock (JetBrains Mono)
+# Шрифт синхронизирован с hyprlock
 font_name = "JetBrains Mono Nerd Font 12"
-# ==== (было: Inter 12)
 icon_theme_name = "Adwaita"
-# ~~~~ Замена: тема синхронизирована — тёмная с голубым акцентом
+# Тёмная тема, как в hyprlock
 theme_name = "Adwaita-dark"
-# ==== (было: Adwaita)
 
 [appearance]
 greeting_msg = "Welcome"
@@ -30,8 +24,7 @@ reboot = ["systemctl", "reboot"]
 poweroff = ["systemctl", "poweroff"]
 
 [widget.clock]
-# ~~~~ Замена: формат часов синхронизирован с hyprlock ($TIME = %H:%M)
+# Формат часов как в hyprlock ($TIME = %H:%M)
 format = "%H:%M"
-# ==== (было: "%a %H:%M")
 resolution = "500ms"
 label_width = 150
