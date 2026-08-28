@@ -10,27 +10,16 @@ fi
 
 # Определяем, работаем ли мы в виртуалке: vmware, kvm, virtualbox и т.д.
 # В VM драйвер vmwgfx плохо дружит с dmabuf, поэтому включаем софт-рендер
+# Определяем, работаем ли мы в виртуалке: vmware, kvm, virtualbox и т.д.
 VIRT="$(systemd-detect-virt 2>/dev/null || echo none)"
-
 if [[ "$VIRT" != "none" ]]; then
-    echo "Обнаружена виртуализация: $VIRT, включаю программный рендеринг"
-
-    mkdir -p /etc/systemd/system/greetd.service.d
-    cat > /etc/systemd/system/greetd.service.d/99-vm-render.conf <<'EOF'
-[Service]
-# Mesa использует llvmpipe вместо кривого dmabuf в vmwgfx
-Environment=LIBGL_ALWAYS_SOFTWARE=1
-# wlroots-композиторы (cage) рисуют через pixman вообще без EGL
-Environment=WLR_RENDERER=pixman
-# Аппаратный курсор в VM часто не работает — рисуем программно
-Environment=WLR_NO_HARDWARE_CURSORS=1
-EOF
-
-    systemctl daemon-reload
+echo "Обнаружена виртуализация: $VIRT, включаю программный рендеринг"
+# greetd не передаёт Environment= из drop-in своим сессиям,
+# поэтому переменные будут вшиты прямо в команды запуска
+VM_ENV="LIBGL_ALWAYS_SOFTWARE=1 WLR_RENDERER=pixman WLR_NO_HARDWARE_CURSORS=1"
 else
-    # На реальном железе убираем костыли, если остались от прошлых запусков в VM
-    rm -f /etc/systemd/system/greetd.service.d/99-vm-render.conf
-    systemctl daemon-reload
+# На реальном железе рендеринг аппаратный — переменные не нужны
+VM_ENV=""
 fi
 
 user_nosudo="$SUDO_USER"
@@ -496,12 +485,11 @@ sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
     hyprlock \
     pcmanfm-qt gvfs \
     nohang-git aur/minq-ananicy-git aur/stacer-bin \
-    aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra \
     visual-studio-code-bin fastfetch-git
 # dms-shell-niri
 # xdman8-beta-git - вызывает warning
 # firefox-extension-xdman8-browser-monitor - вызывает warning
-
+# aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra \
 
 # Симлинки на конфиги из папки archauto в ~/.config
 # Функция создания симлинка: исходник в репо → цель в ~/.config
@@ -763,7 +751,7 @@ echo "Все симлинки созданы"
 # Вход и локскрин из одной кодовой базы: gtklock сделан на основе gtkgreet,
 # поэтому один CSS-файл делает оба экрана визуально идентичными
 # cage нужен gtkgreet как композитор-обёртка, seatd — для доступа к креслу
-pacman -S --needed --noconfirm greetd gtkgreet gtklock cage seatd
+pacman -S --needed --noconfirm greetd greetd-gtkgreet gtklock cage seatd
 
 # Общий стиль для экрана входа и локскрина
 install -Dm644 "$SCRIPT_DIR/configs/greetd/greeter.css" /etc/greetd/greeter.css
@@ -788,20 +776,39 @@ usermod -aG seat,video,input greeter
 usermod -aG seat "$SUDO_USER"
 
 echo "Создаём /etc/greetd/config.toml для cage + gtkgreet"
+
+# Теним системный niri.desktop: /usr/local/share приоритетнее /usr/share,
+# и в VM niri стартует с llvmpipe без ручного выбора сессии
+mkdir -p /usr/local/share/wayland-sessions
+cat > /usr/local/share/wayland-sessions/niri.desktop <<EOF
+[Desktop Entry]
+Name=Niri
+Comment=Scrollable tiling Wayland compositor
+Exec=env $VM_ENV niri
+Type=Application
+EOF
+
+echo "Создаём /etc/greetd/config.toml для cage + gtkgreet"
 mkdir -p /etc/greetd
-cat > /etc/greetd/config.toml <<'EOF'
+cat > /etc/greetd/config.toml <<EOF
 [terminal]
 vt = 1
 
 [default_session]
-# gtkgreet читает тот же CSS, который потом использует gtklock
-command = "cage -s -- gtkgreet -s /etc/greetd/greeter.css"
+# Переменные окружения живут в самой команде: greetd чистит окружение сессий
+command = "env $VM_ENV cage -s -- gtkgreet -s /etc/greetd/greeter.css"
 user = "greeter"
 EOF
-
 # Освобождаем VT1, чтобы getty не дрался с greetd за один терминал
 systemctl disable --now getty@tty1.service || true
 
 systemctl enable greetd.service
 echo "Устанавливаем graphical.target как цель загрузки по умолчанию"
 systemctl set-default graphical.target
+
+# Включаем greetd только если юнит действительно существует
+if systemctl list-unit-files greetd.service | grep -q greetd; then
+    systemctl enable --now greetd.service
+else
+    echo "ОШИБКА: greetd.service не найден — проверь установку greetd" >&2
+fi
