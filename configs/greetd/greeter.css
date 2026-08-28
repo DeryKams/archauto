@@ -1,0 +1,19 @@
+/* Один стиль на двоих: gtkgreet (вход) и gtklock (лок) */
+/* Оба приложения на GTK3, поэтому работает обычный GTK CSS */
+
+window {
+    /* Те же обои, что ты готовил для hyprlock */
+    background-image: url("file:///usr/share/backgrounds/greeter.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+/* Поля ввода и кнопки — одинаковые на обоих экранах */
+entry, button {
+    border-radius: 12px;
+    min-height: 36px;
+    font-family: "JetBrains Mono Nerd Font";
+    font-size: 14px;
+    background-color: rgba(30, 30, 30, 0.85);
+    color: #eeeeee;
+}

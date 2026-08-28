@@ -351,7 +351,9 @@ Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock";
     Mod+H     { focus-column-left; }
     Mod+J     { focus-window-down; }
     Mod+K     { focus-window-up; }
-    Mod+L     { focus-column-right; }
+    //Mod+L     { focus-column-right; }
+    // Лок тем же стилем, что и экран входа
+    Mod+L { spawn "lock"; }
 
     // Перемещение
     Mod+Ctrl+Left  { move-column-left; }

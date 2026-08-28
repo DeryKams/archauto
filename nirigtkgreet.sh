@@ -1,0 +1,807 @@
+#!/bin/bash
+
+exec > >(tee -a "niriauto.log") 2>&1
+
+
+if [[ -z "$SUDO_USER" ]]; then
+    echo "Скрипт нужно запускать через sudo от обычного пользователя."
+    exit 1
+fi
+
+# Определяем, работаем ли мы в виртуалке: vmware, kvm, virtualbox и т.д.
+# В VM драйвер vmwgfx плохо дружит с dmabuf, поэтому включаем софт-рендер
+VIRT="$(systemd-detect-virt 2>/dev/null || echo none)"
+
+if [[ "$VIRT" != "none" ]]; then
+    echo "Обнаружена виртуализация: $VIRT, включаю программный рендеринг"
+
+    mkdir -p /etc/systemd/system/greetd.service.d
+    cat > /etc/systemd/system/greetd.service.d/99-vm-render.conf <<'EOF'
+[Service]
+# Mesa использует llvmpipe вместо кривого dmabuf в vmwgfx
+Environment=LIBGL_ALWAYS_SOFTWARE=1
+# wlroots-композиторы (cage) рисуют через pixman вообще без EGL
+Environment=WLR_RENDERER=pixman
+# Аппаратный курсор в VM часто не работает — рисуем программно
+Environment=WLR_NO_HARDWARE_CURSORS=1
+EOF
+
+    systemctl daemon-reload
+else
+    # На реальном железе убираем костыли, если остались от прошлых запусков в VM
+    rm -f /etc/systemd/system/greetd.service.d/99-vm-render.conf
+    systemctl daemon-reload
+fi
+
+user_nosudo="$SUDO_USER"
+USER_RUNTIME_DIR="/run/user/$(id -u "$user_nosudo")"
+
+file="/etc/systemd/journald.conf"
+search_maxuse="SystemMaxUse"
+search_max_file_size="SystemMaxFileSize"
+new_value_maxuse="50M"
+new_max_file_size="40M"
+custom_sysctl="/etc/sysctl.d/99-custom.conf"
+new_swappiness="10"
+new_cash_pressure="65"
+search_swappiness="vm.swappiness"
+search_cash_pressure="vm.vfs_cache_pressure"
+pacman_config="/etc/pacman.conf"
+search_parallel_dow="ParallelDownloads"
+new_parallel_dow="10"
+downloadPckg="yes"
+cpuUpd="yes"
+grab_conf="/etc/default/grub"
+srch_grub_default="GRUB_CMDLINE_LINUX_DEFAULT"
+grub_configurator="yes"
+
+#Ограничение журнала
+journalctl --vacuum-size=30M
+journalctl --verify
+systemctl restart systemd-journald
+
+#Проверка для создания бэкапа journal.conf
+if [ -f "$file.original" ]; then
+    echo "Бэкап был уже ранее создан: $file.original"
+else
+    #Проверка существования файла
+    if [ -f "$file" ]; then
+        #В квадратных скобках [] прописывается условие для проверки. Необходимы пробелы после и перед скобкаби (перед и после условия проверки)
+        # -f проверяет существует ли файл с именем, указанным справа
+        #Создание бэкапа
+        cp "$file" "$file.original"
+        echo "Был создан бэкап: $file.original"
+    else
+        echo "Файл не найден: $file"
+    fi
+fi
+#Для каждого if нужен свой fi
+
+#замена SystemMaxUse
+if grep -q "^#$search_maxuse" "$file"; then
+    #grep - команда поиска текста в файле
+    #-q - тихий режим, grep не выводит строки, а просто сообщает о найденом совпадении
+
+    sed -i "s/^#$search_maxuse=.*/$search_maxuse=$new_value_maxuse/" "$file"
+    #sed -i Редактирует файл на месте
+    #"s" -команда замены для sed
+    # s/шаблон/замена/
+    #/^ - обозначение начала строки для поиска. В замене он обозначается буквально
+    # .* - регулярное выражение, которое обозначает любое выражение до перевода строки
+    echo "#$search_maxuse был заменен"
+else
+    if grep -q "^$search_maxuse=" "$file"; then
+        sed -i "s/^$search_maxuse=.*/$search_maxuse=$new_value_maxuse/" "$file"
+        echo "$search_maxuse был заменен"
+    else
+        echo "$search_maxuse=$new_value_maxuse" >> "$file"
+        echo "SystemMaxUse был добавлен в конец файла"
+    fi
+fi
+
+#SystemMaxFileSize замена
+if grep -q "^#$search_max_file_size" "$file"; then
+
+    sed -i "s/^#$search_max_file_size=.*/$search_max_file_size=$new_max_file_size/" "$file"
+    #sed -i редактирвует в инлайне
+    #s/шаблон/замена/
+    #^-начало строки
+    #.*-регулряное выражение, обозанчающие любое выражение до перевода строки
+
+    echo "#$search_max_file_size был заменен на $search_max_file_size=$new_max_file_size"
+
+else
+    if grep -q "^$search_max_file_size" "$file"; then
+        sed -i "s/^$search_max_file_size.*/$search_max_file_size=$new_max_file_size/" "$file"
+
+        echo "$search_max_file_size был заменен на $search_max_file_size=$new_max_file_size"
+
+    else
+
+        echo "$search_max_file_size=$new_max_file_size" >> "$file"
+        echo "$search_max_file_size=$new_max_file_size был добавлен в конце $file"
+    fi
+fi
+
+
+#Создание кастомного systemctl
+if [ -f "$custom_sysctl" ]; then
+    echo "$custom_sysctl уже был ранее создан"
+else
+
+    touch "$custom_sysctl"
+    echo "$custom_sysctl создан"
+fi
+
+#добавляем vm.swappiness в кастомный sysctl
+if grep -q "^$search_swappiness" "$custom_sysctl"; then
+
+    sed -i "s/^$search_swappiness=.*/$search_swappiness=$new_swappiness/" "$custom_sysctl"
+
+    echo "$search_swappiness бы заменен на $new_swappiness"
+
+else
+
+    echo "$search_swappiness=$new_swappiness" >> "$custom_sysctl"
+    echo "$search_swappiness=$new_swappiness был добавлен в конце $custom_sysctl"
+fi
+
+#добавляем vm.vfs_cache_pressure в sysctl
+if grep -q "^$search_cash_pressure" "$custom_sysctl"; then
+
+    sed -i "s/^$search_cash_pressure=.*/$search_cash_pressure=$new_cash_pressure/" "$custom_sysctl"
+
+    echo "$search_cash_pressure бы заменен на $new_cash_pressure"
+
+else
+
+    echo "$search_cash_pressure=$new_cash_pressure" >> "$custom_sysctl"
+    echo "$search_cash_pressure=$new_cash_pressure бы добавлен в конце $custom_sysctl"
+fi
+
+#sysctl --system
+
+if grep -q "^$search_parallel_dow" "$pacman_config"; then
+    sed -i "s/^$search_parallel_dow.*/$search_parallel_dow = $new_parallel_dow/" "$pacman_config"
+    echo "$search_parallel_dow было заменено значение на $new_parallel_dow"
+else
+    echo "$search_parallel_dow = $new_parallel_dow" >> "$pacman_config"
+    echo "$search_parallel_dow = $new_parallel_dow было добавлено в конец $pacman_config"
+fi
+
+if grep -q "^#Color" "$pacman_config"; then
+
+    sed -i "s/#Color/Color/" "$pacman_config"
+    echo "Color был включен"
+else
+    if grep -q "^Color" "$pacman_config"; then
+
+        echo "Color уже включен"
+    else
+        echo "Color" >> "$pacman_config"
+
+    fi
+fi
+
+if grep -q "^ILoveCandy" "$pacman_config"; then
+    #! инвентирует условие
+    #-v -инвентирует условие. То есть если НЕ, то условие выполняется
+    echo "ILoveCandy уже включен"
+else
+
+    sed -i "/^Color/a ILoveCandy" "$pacman_config"
+    #-i редактирует файл на месте
+    # a/ камманда append в sed, вставляет новую сроку, после найденной строки
+    #шаблон вставки: "/что ищем/a что вставляем" "$file"
+fi
+
+echo "Идет обновление системы"
+
+pacman -Syu --noconfirm
+echo "Обновление завершено"
+
+echo "Идет установка пакетов"
+if [ "$downloadPckg" == "yes" ]; then
+
+    # Установка шрифтов
+    pacman -S --needed --noconfirm \
+        ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation \
+        ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols \
+        noto-fonts-extra powerline-fonts
+
+    # установка системных утилит
+    pacman -S --needed --noconfirm \
+        base-devel bash-completion git wget openssh networkmanager pacman-contrib bluez bluez-utils \
+        blueman apparmor ufw gufw iptables-nft \
+        ghostscript fail2ban libpwquality reflector
+
+# Установка игровых пакетов
+    pacman -S --needed --noconfirm \
+        mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon \
+        gamemode lib32-gamemode steam pavucontrol
+
+# CMD utilities
+    pacman -S --needed --noconfirm \
+        ripgrep bat lsd duf dust gping dos2unix jq yq \
+        fzf rclone irqbalance libqalculate htop \
+        wl-clipboard nano vim qrencode
+
+# disk management
+    pacman -S --needed --noconfirm \
+        ntfs-3g timeshift unrar zip p7zip
+
+# additional packages
+    pacman -S --needed --noconfirm \
+        chromium mpv vlc tor torbrowser-launcher nyx \
+        qbittorrent obsidian flameshot libreoffice-fresh-ru
+# codec for vlc mpv
+    pacman -S --needed --noconfirm \
+        gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly vlc-plugin-ffmpeg
+    # если используется ядро hardened, то нужно установить заголовки - extra/linux-hardened-headers
+    # поддержка старых видеокарт - xf86-video-ati
+
+else
+    echo "Пакеты пропущены"
+fi
+echo "Пакеты установлены"
+
+if [ "$cpuUpd" == "yes" ]; then
+
+    echo "Обновление микрокода"
+    pacman -S --noconfirm amd-ucode
+    mkinitcpio -P
+    echo "Микрокод обновлен"
+
+
+    #Нужно уточнить, нужно ли проводить процедуру после перекомпиляции ядра
+else
+    echo "Микрокод пропущен"
+fi
+
+if [ "$grub_configurator" = "yes" ]; then
+    #определяем тип файловой системы для корневого диска
+
+    #Создаем переменную с командой, которая ищет строку, где смонтирован корень
+    fstype_var=$(findmnt -n -o FSTYPE / 2>/dev/null || awk '$2 == "/" {print $3}' /proc/mounts)
+
+    #awk - перебирает слова и строки, находит слово type и выводит следующее за ним значение
+    grub_params="quiet loglevel=0 rd.systemd.show_status=auto rd.udev.log_level=0 splash rootfstype=$fstype_var selinux=0 raid=noautodetect nowatchdog"
+
+    #проверяем наличие бэкапа
+    if [ -f "$grab_conf.original" ]; then
+        echo "Бэкап grub уже существует"
+    else
+        if [ -f "$grab_conf" ]; then
+            #Создаем бэкап
+            cp "$grab_conf" "$grab_conf.original"
+            echo "Был создан бэкап $grab_conf.original"
+        else
+            echo "Конфиг grub по пути: $grab_conf не был найден"
+        fi
+    fi
+
+    #Проверяем наличие строки
+    if grep -q "^.*$srch_grub_default.*" "$grab_conf"; then
+
+        #изменяем строку
+        sed -i "s/^$srch_grub_default=.*/$srch_grub_default=\"$grub_params\"/" "$grab_conf"
+
+    else
+        echo "$srch_grub_default не был найден по пути $grab_conf. Вставьте строку:\n $srch_grub_default=\"$grub_params\""
+
+    fi
+    #создаем конфиг
+    if grep -q "^GRUB_DISABLE_OS_PROBER=" "$grab_conf"; then
+        sed -i 's/^GRUB_DISABLE_OS_PROBER=.*/GRUB_DISABLE_OS_PROBER=true/' "$grab_conf"
+    else
+        echo 'GRUB_DISABLE_OS_PROBER=true' >> "$grab_conf"
+    fi
+    grub-mkconfig -o /boot/grub/grub.cfg
+
+else
+    echo "Конфигурация grub пропущена"
+fi
+
+
+#Включаем gamemode
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable gamemoded
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user start gamemoded
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user status gamemoded
+
+
+# установка kitty с ranger
+
+echo "Installing ranger and configuring it for image previews in kitty terminal..."
+pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow
+
+#Получаем домашнюю директорию пользователя
+if [[ $EUID -eq 0 ]] && [[ -n "$SUDO_USER" ]]; then
+    #$EUID - переменная, которая содержит ID текущего пользователя
+    # -eq - аналог == для других языков
+    # 0 - это ID суперпользователя (root)
+    # [[ $EUID -eq 0 ]] - условие: если текущий пользователь - суперпользователь
+    # && - логическое "и"; оба условия должны быть истинными
+    # -n - проверка что строка не пустая
+    # $SUDO_USER - переменная в которой храниться имя пользователя, который  запустил команду через sudo
+    # [[ -n "$SUDO_USER" ]] - проверяется, что в переменной пользователя, который запустил через sudo, не пустая
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    # getent - команда, которая позволяет получать записи из системных баз данных Linux, к примеру passwd, group или hosts
+    # Синтаксис: getent <база данных> <ключ> - getent passwd "$SUDO_USER"
+    # getent passwd "$SUDO_USER" - ищем в справочнике passwd пользователя, который запустил команду через sudo
+    # | (pipe) — это оператор, который перенаправляет вывод одной команды (getent) на вход другой
+    # cut - вывод команды в поток
+    # -d: - разделитель, который используется в файле passwd (записи разделены двоеточиями)
+    # -f6 - вывод шестого поля, которое соответствует домашней директории пользователя
+else
+    USER_HOME="$HOME"
+fi
+
+#домашняя директория пользователя содержиться в $USER_HOME
+echo "Домашняя директория пользователя: $USER_HOME"
+
+#Копируем конфигурационные файлы ranger
+echo "Copying ranger configuration files..."
+sudo -u "$SUDO_USER" ranger --copy-config=all
+echo "Ranger configuration"
+
+rcconf="$USER_HOME/.config/ranger/rc.conf"
+metpreview="kitty"
+
+# Проверка существования файла rc.conf
+if [[ -f "$rcconf" ]]; then
+    # Настройка preview_images
+    if grep -q "^set preview_images" "$rcconf"; then
+        if grep -q "^set preview_images true" "$rcconf"; then
+            echo "set preview_images true already exists in $rcconf."
+        else
+            sed -i 's/^set preview_images.*/set preview_images true/' "$rcconf"
+            echo "Updated set preview_images to true in $rcconf."
+        fi
+    else
+        echo "set preview_images true" >> "$rcconf"
+        echo "Added set preview_images true to $rcconf."
+    fi
+
+    # Настройка preview_images_method
+    if grep -q "^set preview_images_method" "$rcconf"; then
+        if grep -q "^set preview_images_method $metpreview" "$rcconf"; then
+            echo "set preview_images_method $metpreview already exists in $rcconf."
+        else
+            sed -i "s/^set preview_images_method.*/set preview_images_method $metpreview/" "$rcconf"
+            echo "Updated set preview_images_method to $metpreview in $rcconf."
+        fi
+    else
+        echo "set preview_images_method $metpreview" >> "$rcconf"
+        echo "Added set preview_images_method $metpreview to $rcconf."
+    fi
+
+    echo "kitty terminal installed and ranger configured with image previews."
+else
+    echo "Error: $rcconf not found."
+fi
+# окончание установки kitty с ranger
+
+# Заменяем количество одновременных процессов сборки на количество доступных процессоров
+MAKEPKG_CONF="/etc/makepkg.conf"
+# Переменная с путем до makepkg.conf
+# = - должен быть без пробелов вокруг
+if [[ -f "$MAKEPKG_CONF" ]]; then
+    # -f - оператор проверки файла, возвращает true, если файл существует и является обычным файлом
+
+    cp "$MAKEPKG_CONF" "${MAKEPKG_CONF}.backup.$(date +%Y%m%d%H%M%S)"
+
+    # Сохраняем timestamp в переменную, чтобы использовать одинаковый
+    TIMESTAMP=$(date +%Y%m%d%H%M%S)
+    BACKUP_FILE="${MAKEPKG_CONF}.backup.${TIMESTAMP}"
+
+    cp "$MAKEPKG_CONF" "$BACKUP_FILE"
+    echo "Backup of $MAKEPKG_CONF created to $BACKUP_FILE"# cp - копируем файл по пути
+    # "${MAKEPKG_CONF}.backup.$(date +%Y%m%d%H%M%S)" - целевое имя файла
+    # ${MAKEPKG_CONF} - отделяем переменную от остального текста
+    # $(date +%Y%m%d%H%M%S) - выполняем команду date для получения текущей даты и времени в формате ГГГГММДДЧЧММСС
+    sed -i 's/^#MAKEFLAGS=.*/MAKEFLAGS="-j$(nproc)"/' "$MAKEPKG_CONF"
+    # sed - потоковый текстовый редактор
+    # -i - редактирование файла на месте
+    #  's/.../.../' - шаблон замены
+    #  ^ - объявляет начало строки
+    #  #MAKEFLAGS=.* - ищем строку, начинающуюся с #MAKEFLAGS
+    #  MAKEFLAGS="-j$(nproc)" - заменяем на эту строку
+    if grep -q '^MAKEFLAGS="-j$(nproc)"' "$MAKEPKG_CONF"; then
+        echo "MAKEFLAGS успешно обновлены для использования всех процессоров."
+    else
+        echo "Предупреждение: не удалось найти/обновить строку MAKEFLAGS" >&2
+    fi
+else
+    echo "Error: $MAKEPKG_CONF not found.">&2
+    # >&2 - перенаправление вывода ошибки в стандартный поток ошибок
+fi
+# Заменяем количество одновременных процессов сборки на количество доступных процессоров
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Исправляем gpg ключи
+# Указываем запасные keyserver'ы, если основной недоступен
+# --keyserver-options auto-key-retrieve разрешает автоматический импорт
+
+# Создаём директорию .gnupg с правильными правами (700)
+# install -d создаёт директорию с указанными правами и владельцем
+sudo -u "$SUDO_USER" install -d -m 700 /home/"$SUDO_USER"/.gnupg
+
+# Проверяем, есть ли уже настройка keyserver, чтобы не дублировать
+if ! sudo -u "$SUDO_USER" grep -q '^keyserver' /home/"$SUDO_USER"/.gnupg/gpg.conf 2>/dev/null; then
+    # Heredoc вынесен за пределы кавычек — так внешний shell гарантированно обработает его
+    # и передаст содержимое на stdin внутреннему bash
+    # cat >> дописывает в конец файла, не перезаписывая существующие настройки
+    sudo -u "$SUDO_USER" bash -c 'cat >> ~/.gnupg/gpg.conf' <<'EOF'
+keyserver hkps://keyserver.ubuntu.com
+keyserver-options auto-key-retrieve
+EOF
+    # Устанавливаем правильные права на файл конфигурации GPG (600)
+    sudo -u "$SUDO_USER" chmod 600 /home/"$SUDO_USER"/.gnupg/gpg.conf
+fi
+# Исправляем gpg ключи
+
+
+# Установка paru
+if command -v paru >/dev/null 2>&1; then
+    # paru найден в PATH — установка не нужна
+    echo "paru уже установлен: $(paru --version)"
+else
+    echo "paru не найден — начинаем установку"
+
+    echo "=== Установка зависимостей ==="
+    # base-devel и git нужны для makepkg и клонирования репозитория,
+    # rust и cargo нужны потому что paru написан на Rust
+    sudo pacman -S --noconfirm --needed rust rust-wasm cargo debugedit fakeroot pkgconf openssl git base-devel
+
+    echo "=== Сборка и установка paru из AUR ==="
+    # Переключаемся на обычного пользователя, так как makepkg от root не работает
+    sudo -u "$user_nosudo" bash -c '
+        cd ~ || exit 1
+        # Если от прошлого запуска осталась папка paru, удаляем её,
+        # иначе git clone упадёт с ошибкой "destination path already exists"
+        rm -rf paru
+        git clone https://aur.archlinux.org/paru.git || exit 1
+        cd paru || exit 1
+        # -s сам доставит недостающие зависимости сборки,
+        # -i установит готовый пакет в систему,
+        # --skippgpcheck пропускает проверку PGP-подписей (у paru в PKGBUILD их нет, флаг необязательный)
+        makepkg -si --noconfirm --skippgpcheck
+        cd ~ || exit 1
+        rm -rf paru
+    '
+
+    echo "=== Проверка результата ==="
+    # hash -r очищает кэш путей к командам в bash,
+    # чтобы интерпретатор сразу увидел свежеустановленный бинарник
+    hash -r
+    if command -v paru >/dev/null 2>&1; then
+        echo "paru успешно установлен: $(paru --version)"
+    else
+        echo "ОШИБКА: paru не установлен после сборки"
+        # Ненулевой код выхода позволит вызывающему скрипту понять, что случилась авария
+        exit 1
+    fi
+fi
+# Установка paru
+
+
+# Установка paru пакетов
+sudo -u "$SUDO_USER" paru -S --needed --noconfirm \
+    alacritty fuzzel mako niri neowall-git swayidle \
+    wl-clipboard-history-git xdg-desktop-portal-gnome xorg-xwayland xwayland-satellite \
+    waybar foot swaybg \
+    pipewire pipewire-pulse pipewire-alsa wireplumber \
+    polkit-gnome grim slurp papirus-icon-theme brightnessctl playerctl \
+    hyprlock \
+    pcmanfm-qt gvfs \
+    nohang-git aur/minq-ananicy-git aur/stacer-bin \
+    aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra \
+    visual-studio-code-bin fastfetch-git
+# dms-shell-niri
+# xdman8-beta-git - вызывает warning
+# firefox-extension-xdman8-browser-monitor - вызывает warning
+
+
+# Симлинки на конфиги из папки archauto в ~/.config
+# Функция создания симлинка: исходник в репо → цель в ~/.config
+# Делает backup существующего файла/ссылки перед заменой
+make_symlink() {
+    local source="$1"   # путь к файлу в репозитории
+    local target="$2"   # путь куда создаётся симлинк
+
+    if [[ ! -f "$source" ]]; then
+        echo "ПРЕДУПРЕЖДЕНИЕ: исходный файл не найден: $source"
+        return 1
+    fi
+
+    # Создаём родительскую директорию
+    mkdir -p "$(dirname "$target")"
+
+    # Backup существующего (если это не уже наш симлинк)
+    if [[ -L "$target" ]]; then
+        # Уже симлинк — просто перезаписываем
+        rm -f "$target"
+    elif [[ -e "$target" ]]; then
+        local backup="${target}.backup.$(date +%Y%m%d%H%M%S)"
+        cp -r "$target" "$backup"
+        echo "Создан backup: $backup"
+        rm -rf "$target"
+    fi
+
+    # Создаём симлинк
+    ln -sf "$source" "$target"
+    echo "Симлинк: $target -> $source"
+
+    # Права
+    if [[ -n "$SUDO_USER" ]]; then
+        chown -h "$SUDO_USER":"$SUDO_USER" "$target"
+    fi
+}
+
+# niri config.kdl
+make_symlink "$SCRIPT_DIR/configs/niri/config.kdl" "$USER_HOME/.config/niri/config.kdl"
+
+# waybar config + style.css
+make_symlink "$SCRIPT_DIR/configs/waybar/config" "$USER_HOME/.config/waybar/config"
+make_symlink "$SCRIPT_DIR/configs/waybar/style.css" "$USER_HOME/.config/waybar/style.css"
+
+# fuzzel
+make_symlink "$SCRIPT_DIR/configs/fuzzel/fuzzel.ini" "$USER_HOME/.config/fuzzel/fuzzel.ini"
+
+# mako
+make_symlink "$SCRIPT_DIR/configs/mako/config" "$USER_HOME/.config/mako/config"
+
+# hyprlock — конфиг блокировки экрана (liquid glass)
+# hyprlock ищет конфиг в ~/.config/hypr/hyprlock.conf
+make_symlink "$SCRIPT_DIR/configs/hyprlock/hyprlock.conf" "$USER_HOME/.config/hypr/hyprlock.conf"
+
+# Установка и настройка niri
+# Конфиг tlp.conf лежит в configs/tlp/tlp.conf и линкуется в /etc/tlp.conf
+
+echo "Замена power-profiles-daemon на TLP"
+
+# Останавливаем и удаляем ppd
+systemctl stop power-profiles-daemon.service 2>/dev/null || true
+systemctl disable power-profiles-daemon.service 2>/dev/null || true
+pacman -Rns --noconfirm power-profiles-daemon 2>/dev/null || true
+
+# Устанавливаем TLP и зависимости
+# tlp — основной пакет управления питанием
+# tlp-rdw — Radio Device Wizard (Wi-Fi/BT on/off при подключении LAN)
+# acpi_call-dkms — модуль ядра для ThinkPad (charge thresholds, recalibration)
+# ethtool — нужен TLP для Wake-On-LAN
+# smartmontools — S.M.A.R.T. мониторинг дисков
+pacman -S --needed --noconfirm tlp tlp-rdw acpi_call-dkms ethtool smartmontools
+
+# Симлинк на конфиг TLP (вместо копирования)
+if [[ -f "/etc/tlp.conf" ]] && [[ ! -L "/etc/tlp.conf" ]]; then
+    cp /etc/tlp.conf "/etc/tlp.conf.backup.$(date +%Y%m%d%H%M%S)"
+fi
+ln -sf "$SCRIPT_DIR/configs/tlp/tlp.conf" /etc/tlp.conf
+
+# Включаем службы TLP
+systemctl enable tlp.service
+systemctl restart tlp.service
+
+echo "TLP установлен и включён. Проверка: tlp-stat -s"
+
+
+# pacman -S --noconfirm --needed openresolv
+# systemctl enable systemd-resolved.service
+# systemctl start systemd-resolved.service
+
+# Pipewire установлен через paru выше, но user services нужно включить явно
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
+    XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable pipewire.service
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
+    XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable pipewire-pulse.service
+sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" \
+    XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user enable wireplumber.service
+echo "Pipewire user services включены"
+
+#объявляем функцию для включения служб
+enable_service(){
+
+    local service_name="$1"
+    #$1 - это первый аргумент, который передается функции
+    # local - объявляем переменную, которая будет локально внутри данной функции. К примеру, чтобы она не перезаписывала глобальные
+
+    if systemctl enable --now "$service_name"; then
+        echo "Service $service_name enabled and started successfully."
+
+        if systemctl is-active --quiet "$service_name"; then
+            # systemctl is-active - специально созданная команда для проверки статуса службы
+            # --quiet - означает, что вывод будет без лишней информации, только код возврата
+            echo "Service $service_name is running."
+        else
+            echo "Service $service_name is not running after enabling."
+            journalctl -n 5 -u "$service_name" --no-pager
+        fi
+    else
+        echo "Failed to enable or start service $service_name. It may already be running or not exist."
+        journalctl -n 10 -u "$service_name" --no-pager
+    fi
+
+
+}
+# проверяем статусы служб
+#Объявляем массив для служб
+# -a - объявляем, что это массив
+# -r - объявляем, что массив является неизменяемым, то есть только для чтения
+declare -a LIST_SERVICE_CHECK=(
+    "reflector.service"
+    "reflector.timer"
+    "fail2ban.service"
+    "irqbalance.service"
+)
+
+# Службы из AUR — включаются только если пакет установлен
+declare -a AUR_SERVICE_CHECK=(
+    "nohang-desktop.service"
+    "ananicy.service"
+)
+
+
+for item in "${LIST_SERVICE_CHECK[@]}"; do
+    enable_service "$item"
+done
+
+for item in "${AUR_SERVICE_CHECK[@]}"; do
+    if systemctl list-unit-files "$item" 2>/dev/null | grep -q "$item"; then
+        enable_service "$item"
+    else
+        echo "Service $item not found — AUR package may not be installed. Skipping."
+    fi
+done
+
+
+# Установка flatpak # Нужно в конце, так как qalculate-qt будет долгим
+pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+# Временно не устанавливаем пакеты flatpak
+# flatpak install -y flathub io.github.Qalculate.qalculate-qt org.telegram.desktop
+
+# Установка и настройка zsh с ohmyzsh
+echo "Начинаем установку и настройку zsh с ohmyzsh"
+
+# устанавливаем zsh и дополнительные пакеты
+pacman -S --needed --noconfirm git curl zsh fzf powerline-fonts zsh-syntax-highlighting zsh-autosuggestions
+
+# Установка фреймворка Oh My Zsh
+sudo -u "$SUDO_USER" bash << 'OHEOF'
+cd ~ || exit 1
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+OHEOF
+
+# Изменяем оболочку от имени root
+chsh -s "$(which zsh)" "$SUDO_USER"
+
+# Необходимо экранировать кавычки внутри команды bash -c, если открывается с двойных кавычек
+
+# Установка темы Powerlevel10k
+sudo -u "$SUDO_USER" git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k"
+# Установка дополнительных плагинов
+sudo -u "$SUDO_USER" git clone https://github.com/zsh-users/zsh-completions.git "$USER_HOME/.oh-my-zsh/custom/plugins/zsh-completions"
+sudo -u "$SUDO_USER" git clone https://github.com/MichaelAquilina/zsh-you-should-use.git "$USER_HOME/.oh-my-zsh/custom/plugins/you-should-use"
+sudo -u "$SUDO_USER" git clone https://github.com/Aloxaf/fzf-tab "$USER_HOME/.oh-my-zsh/custom/plugins/fzf-tab"
+
+# Создаем симлинки на системные плагины
+sudo -u "$SUDO_USER" bash << 'EOF'
+ln -sf /usr/share/zsh/plugins/zsh-syntax-highlighting ~/.oh-my-zsh/custom/plugins/
+ln -sf /usr/share/zsh/plugins/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/
+EOF
+
+# if [[ -f  $USER_HOME/.zshrc ]]; then
+# # изменяем тему в .zshrc на powerlevel10k
+# sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$USER_HOME/.zshrc"
+# # добавляем плагины
+#     sed -i 's/plugins=.*/plugins=( git zsh-syntax-highlighting zsh-autosuggestions extract you-should-use fzf-tab)/' $USER_HOME/.zshrc
+
+# # Переменные для замены
+# original='source "$ZSH/oh-my-zsh.sh"'
+
+# replacement='fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+# autoload -U compinit && compinit
+# source "$ZSH/oh-my-zsh.sh"'
+
+# # Выполняем замену
+# sed -i "s|$original|$replacement|" $USER_HOME/.zshrc
+
+
+# else
+#     echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> $USER_HOME/.zshrc
+# fi
+
+# Проверяем, существует ли файл .zshrc и является ли он обычным файлом
+if [[ -f "$USER_HOME/.zshrc" ]]; then
+    
+    # Изменяем тему на powerlevel10k
+    # Символ ^ означает начало строки
+    # Обратный слэш перед / нужен, чтобы sed не подумал, что это конец команды замены
+    sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$USER_HOME/.zshrc"
+    
+    # Изменяем список плагинов
+    sed -i 's/^plugins=.*/plugins=(git zsh-syntax-highlighting zsh-autosuggestions extract you-should-use fzf-tab)/' "$USER_HOME/.zshrc"
+
+    # Вставляем настройки автодополнения ПЕРЕД строкой подключения oh-my-zsh
+    # Ищем строку, где есть source и oh-my-zsh.sh 
+    # Команда 'i\' говорит sed: вставь следующий текст ПЕРЕД найденной строкой
+    # Обратный слэш в конце каждой вставляемой строки обязателен: он говорит sed, что текст продолжается ниже
+    sed -i '/source.*oh-my-zsh\.sh/i\
+fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src\
+autoload -U compinit && compinit' "$USER_HOME/.zshrc"
+
+else
+    # Если файла не существует, создаём его и записываем только тему
+    # Двойные кавычки вокруг пути обязательны для безопасности
+    echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> "$USER_HOME/.zshrc"
+fi
+
+# Вставляем содержимое custom.zsh в конец .zshrc (если ещё не вставлено)
+if ! grep -q 'pwgen()' "$USER_HOME/.zshrc"; then
+    echo '' >> "$USER_HOME/.zshrc"
+    cat "$SCRIPT_DIR/configs/zsh/custom.zsh" >> "$USER_HOME/.zshrc"
+    echo "custom.zsh вставлен в конец .zshrc"
+fi
+
+
+echo "Для вступления изменений в силу, перезайдите в систему или выполните команду: exec zsh"
+
+
+#возможно стоит добавить выбор локалей
+echo "Если вас не устраивает устанволенная локаль, то прмините команды
+sudo nano /etc/locale.gen          # Редактирование локалей
+sudo locale-gen                    # Генерация локалей"
+
+
+# настройка reflector
+reflector --country 'Germany' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
+
+echo "Все симлинки созданы"
+
+# Вход и локскрин из одной кодовой базы: gtklock сделан на основе gtkgreet,
+# поэтому один CSS-файл делает оба экрана визуально идентичными
+# cage нужен gtkgreet как композитор-обёртка, seatd — для доступа к креслу
+pacman -S --needed --noconfirm greetd gtkgreet gtklock cage seatd
+
+# Общий стиль для экрана входа и локскрина
+install -Dm644 "$SCRIPT_DIR/configs/greetd/greeter.css" /etc/greetd/greeter.css
+
+# Обои, на которые ссылается CSS;
+install -Dm644 "$SCRIPT_DIR/assets/background.png" /usr/share/backgrounds/greeter.jpg
+
+# Единая команда лока: её дёргают и binds в niri, и waybar
+cat > /usr/local/bin/lock <<'EOF'
+#!/bin/sh
+exec gtklock -s /etc/greetd/greeter.css
+EOF
+chmod +x /usr/local/bin/lock
+
+echo "Включаем seatd для Cage"
+systemctl enable seatd.service
+systemctl start seatd.service
+
+# greeter должен иметь доступ к креслу, видео и вводу,
+# а твой пользователь — к креслу для запуска композиторов
+usermod -aG seat,video,input greeter
+usermod -aG seat "$SUDO_USER"
+
+echo "Создаём /etc/greetd/config.toml для cage + gtkgreet"
+mkdir -p /etc/greetd
+cat > /etc/greetd/config.toml <<'EOF'
+[terminal]
+vt = 1
+
+[default_session]
+# gtkgreet читает тот же CSS, который потом использует gtklock
+command = "cage -s -- gtkgreet -s /etc/greetd/greeter.css"
+user = "greeter"
+EOF
+
+# Освобождаем VT1, чтобы getty не дрался с greetd за один терминал
+systemctl disable --now getty@tty1.service || true
+
+systemctl enable greetd.service
+echo "Устанавливаем graphical.target как цель загрузки по умолчанию"
+systemctl set-default graphical.target
