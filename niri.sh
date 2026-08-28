@@ -425,6 +425,29 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Исправляем gpg ключи
+# Указываем запасные keyserver'ы, если основной недоступен
+# --keyserver-options auto-key-retrieve разрешает автоматический импорт
+
+# Создаём директорию .gnupg с правильными правами (700)
+# install -d создаёт директорию с указанными правами и владельцем
+sudo -u "$SUDO_USER" install -d -m 700 /home/"$SUDO_USER"/.gnupg
+
+# Проверяем, есть ли уже настройка keyserver, чтобы не дублировать
+if ! sudo -u "$SUDO_USER" grep -q '^keyserver' /home/"$SUDO_USER"/.gnupg/gpg.conf 2>/dev/null; then
+    # Heredoc вынесен за пределы кавычек — так внешний shell гарантированно обработает его
+    # и передаст содержимое на stdin внутреннему bash
+    # cat >> дописывает в конец файла, не перезаписывая существующие настройки
+    sudo -u "$SUDO_USER" bash -c 'cat >> ~/.gnupg/gpg.conf' <<'EOF'
+keyserver hkps://keyserver.ubuntu.com
+keyserver-options auto-key-retrieve
+EOF
+    # Устанавливаем правильные права на файл конфигурации GPG (600)
+    sudo -u "$SUDO_USER" chmod 600 /home/"$SUDO_USER"/.gnupg/gpg.conf
+fi
+# Исправляем gpg ключи
+
+
 # Установка paru
 if command -v paru >/dev/null 2>&1; then
     # paru найден в PATH — установка не нужна
@@ -678,25 +701,50 @@ ln -sf /usr/share/zsh/plugins/zsh-syntax-highlighting ~/.oh-my-zsh/custom/plugin
 ln -sf /usr/share/zsh/plugins/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/
 EOF
 
-if [[ -f  $USER_HOME/.zshrc ]]; then
-# изменяем тему в .zshrc на powerlevel10k
-sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$USER_HOME/.zshrc"
-# добавляем плагины
-    sed -i 's/plugins=.*/plugins=( git zsh-syntax-highlighting zsh-autosuggestions extract you-should-use fzf-tab)/' $USER_HOME/.zshrc
+# if [[ -f  $USER_HOME/.zshrc ]]; then
+# # изменяем тему в .zshrc на powerlevel10k
+# sed -i 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$USER_HOME/.zshrc"
+# # добавляем плагины
+#     sed -i 's/plugins=.*/plugins=( git zsh-syntax-highlighting zsh-autosuggestions extract you-should-use fzf-tab)/' $USER_HOME/.zshrc
 
-# Переменные для замены
-original='source "$ZSH/oh-my-zsh.sh"'
+# # Переменные для замены
+# original='source "$ZSH/oh-my-zsh.sh"'
 
-replacement='fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
-autoload -U compinit && compinit
-source "$ZSH/oh-my-zsh.sh"'
+# replacement='fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+# autoload -U compinit && compinit
+# source "$ZSH/oh-my-zsh.sh"'
 
-# Выполняем замену
-sed -i "s|$original|$replacement|" $USER_HOME/.zshrc
+# # Выполняем замену
+# sed -i "s|$original|$replacement|" $USER_HOME/.zshrc
 
+
+# else
+#     echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> $USER_HOME/.zshrc
+# fi
+
+# Проверяем, существует ли файл .zshrc и является ли он обычным файлом
+if [[ -f "$USER_HOME/.zshrc" ]]; then
+    
+    # Изменяем тему на powerlevel10k
+    # Символ ^ означает начало строки
+    # Обратный слэш перед / нужен, чтобы sed не подумал, что это конец команды замены
+    sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$USER_HOME/.zshrc"
+    
+    # Изменяем список плагинов
+    sed -i 's/^plugins=.*/plugins=(git zsh-syntax-highlighting zsh-autosuggestions extract you-should-use fzf-tab)/' "$USER_HOME/.zshrc"
+
+    # Вставляем настройки автодополнения ПЕРЕД строкой подключения oh-my-zsh
+    # Ищем строку, где есть source и oh-my-zsh.sh 
+    # Команда 'i\' говорит sed: вставь следующий текст ПЕРЕД найденной строкой
+    # Обратный слэш в конце каждой вставляемой строки обязателен: он говорит sed, что текст продолжается ниже
+    sed -i '/source.*oh-my-zsh\.sh/i\
+fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src\
+autoload -U compinit && compinit' "$USER_HOME/.zshrc"
 
 else
-    echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> $USER_HOME/.zshrc
+    # Если файла не существует, создаём его и записываем только тему
+    # Двойные кавычки вокруг пути обязательны для безопасности
+    echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> "$USER_HOME/.zshrc"
 fi
 
 # Вставляем содержимое custom.zsh в конец .zshrc (если ещё не вставлено)
