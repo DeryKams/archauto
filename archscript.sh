@@ -70,208 +70,61 @@ esac
 # выбор aur helper
 
 
-#Ограничение журнала
-journalctl --vacuum-size=30M
-journalctl --verify
-systemctl restart systemd-journald
+#Ограничение журнала systemd
+if [[ -f "./lib/journal.sh" ]]; then
+    source "./lib/journal.sh"
+else
+    echo "Модуль ограничения журнала отсутствует в папке lib или нет доступа" >&2
+fi
+
+# Настройка swap и cache pressure в systemctl
+if [[ -f "./lib/sysctl.sh" ]]; then
+    source "./lib/sysctl.sh"
+else
+    echo "Модуль настройки sysctl отсутствует в папке lib или нет доступа" >&2
+fi
+
+# Настройка ILoveCandy, Color и ParallelDownloads в pacman
+if [[ -f "./lib/pacman.sh" ]]; then
+    source "./lib/pacman.sh"
+else
+    echo "Модуль настройки pacman отсутствует в папке lib или нет доступа" >&2
+fi
 
 y="yes"
-yay="yes"
-file="/etc/systemd/journald.conf"
-search_maxuse="SystemMaxUse"
-search_max_file_size="SystemMaxFileSize"
-new_value_maxuse="50M"
-new_max_file_size="40M"
-custom_sysctl="/etc/sysctl.d/99-custom.conf"
-new_swappiness="10"
-new_cash_pressure="65"
-search_swappiness="vm.swappiness"
-search_cash_pressure="vm.vfs_cache_pressure"
-pacman_config="/etc/pacman.conf"
-search_parallel_dow="ParallelDownloads"
-new_parallel_dow="10"
-srch_yay_config="cleanAfter"
+mkinitcpio="yes"
 yay_packages="yes"
 trim="yes"
 grab_conf="/etc/default/grub"
 srch_grub_default="GRUB_CMDLINE_LINUX_DEFAULT"
 grub_configurator="yes"
-
-
 user_nosudo="$SUDO_USER"
-
-path_yay_cfg="/home/$user_nosudo/.config/yay/config.json"
 USER_RUNTIME_DIR="/run/user/$(id -u $user_nosudo)"
-
 #$search_maxuse и так далее - переменные
-
-#Проверка для создания бэкапа journal.conf
-if [ -f "$file.original" ]; then
-    echo "Бэкап был уже ранее создан: $file.original"
-else
-    #Проверка существования файла
-    if [ -f "$file" ]; then
-        #В квадратных скобках [] прописывается условие для проверки. Необходимы пробелы после и перед скобкаби (перед и после условия проверки)
-        # -f проверяет существует ли файл с именем, указанным справа
-        #Создание бэкапа
-        cp "$file" "$file.original"
-        echo "Был создан бэкап: $file.original"
-    else
-        echo "Файл не найден: $file"
-    fi
-fi
-#Для каждого if нужен свой fi
-
-#замена SystemMaxUse
-if grep -q "^#$search_maxuse" "$file"; then
-    #grep - команда поиска текста в файле
-    #-q - тихий режим, grep не выводит строки, а просто сообщает о найденом совпадении
-    
-    sed -i "s/^#$search_maxuse=.*/$search_maxuse=$new_value_maxuse/" "$file"
-    #sed -i Редактирует файл на месте
-    #"s" -команда замены для sed
-    # s/шаблон/замена/
-    #/^ - обозначение начала строки для поиска. В замене он обозначается буквально
-    # .* - регулярное выражение, которое обозначает любое выражение до перевода строки
-    echo "#$search_maxuse был заменен"
-else
-    if grep -q "^$search_maxuse=" "$file"; then
-        sed -i "s/^$search_maxuse=.*/$search_maxuse=$new_value_maxuse/" "$file"
-        echo "*^$search_maxuse был заменен"
-    else
-        echo "$search_maxuse=$new_value_maxuse" >> "$file"
-        echo "SystemMaxUse был добавлен в конец файла"
-    fi
-fi
-
-#SystemMaxFileSize замена
-if grep -q "^#$search_max_file_size" "$file"; then
-    
-    sed -i "s/^#$search_max_file_size=.*/$search_max_file_size=$new_max_file_size/" "$file"
-    #sed -i редактирвует в инлайне
-    #s/шаблон/замена/
-    #^-начало строки
-    #.*-регулряное выражение, обозанчающие любое выражение до перевода строки
-    
-    echo "#$search_max_file_size был заменен на $search_max_file_size=$new_max_file_size"
-    
-else
-    if grep -q "^$search_max_file_size" "$file"; then
-        sed -i "s/^$search_max_file_size.*/$search_max_file_size=$new_max_file_size/" "$file"
-        
-        echo "$search_max_file_size был заменен на $search_max_file_size=$new_max_file_size"
-        
-    else
-        
-        echo "$search_max_file_size=$new_max_file_size" >> "$file"
-        echo "$search_max_file_size=$new_max_file_size был добавлен в конце $file"
-    fi
-fi
-
-
-#Создание кастомного systemctl
-if [ -f "$custom_sysctl" ]; then
-    echo "$custom_sysctl уже был ранее создан"
-else
-    
-    touch "$custom_sysctl"
-    echo "$custom_sysctl создан"
-fi
-
-#добавляем vm.swappiness в кастомный sysctl
-if grep -q "^$search_swappiness" "$custom_sysctl"; then
-    
-    sed -i "s/^$search_swappiness=.*/$search_swappiness=$new_swappiness/" "$custom_sysctl"
-    
-    echo "$search_swappiness бы заменен на $new_swappiness"
-    
-else
-    
-    echo "$search_swappiness=$new_swappiness" >> "$custom_sysctl"
-    echo "$search_swappiness=$new_swappiness был добавлен в конце $custom_sysctl"
-fi
-
-#добавляем vm.vfs_cache_pressure в sysctl
-if grep -q "^$search_cash_pressure" "$custom_sysctl"; then
-    
-    sed -i "s/^$search_cash_pressure=.*/$search_cash_pressure=$new_cash_pressure/" "$custom_sysctl"
-    
-    echo "$search_cash_pressure бы заменен на $new_cash_pressure"
-    
-else
-    
-    echo "$search_cash_pressure=$new_cash_pressure" >> "$custom_sysctl"
-    echo "$search_cash_pressure=$new_cash_pressure бы добавлен в конце $custom_sysctl"
-fi
-
-#sysctl --system
-
-if grep -q "^$search_parallel_dow.*" "$pacman_config"; then
-    
-    sed -i "s/^$search_parallel_dow.*/$search_parallel_dow = $new_parallel_dow/" "$pacman_config"
-    
-    echo "$search_parallel_dow было заменено значение на $new_parallel_dow"
-    
-fi
-
-if grep -q "^#Color" "$pacman_config"; then
-    
-    sed -i "s/#Color/Color/" "$pacman_config"
-    echo "Color был включен"
-else
-    if grep -q "^Color" "$pacman_config"; then
-        
-        echo "Color уже включен"
-    else
-        echo "Color" >> "$pacman_config"
-        
-    fi
-fi
-
-if grep -q "^ILoveCandy" "$pacman_config"; then
-    #! инвентирует условие
-    #-v -инвентирует условие. То есть если НЕ, то условие выполняется
-    echo "ILoveCandy уже включен"
-else
-    
-    sed -i "/^Color/a ILoveCandy" "$pacman_config"
-    #-i редактирует файл на месте
-    # a/ камманда append в sed, вставляет новую сроку, после найденной строки
-    #шаблон вставки: "/что ищем/a что вставляем" "$file"
-fi
 
 echo "Идет обновление системы"
 
 pacman -Syu --noconfirm
 echo "Обновление завершено"
 
+
 echo "Идет установка пакетов"
 if [ "$y" == "yes" ]; then
-    # Установка шрифтов
-    pacman -S --needed --noconfirm ttf-dejavu noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-liberation ttf-fira-code ttf-jetbrains-mono ttf-hack ttf-nerd-fonts-symbols noto-fonts-extra powerline-fonts
-    # установка системных утилит
-    pacman -S --needed --noconfirm base-devel bash-completion git wget openssh networkmanager pacman-contrib cpupower power-profiles-daemon apparmor ufw gufw iptables-nft ghostscript fail2ban libpwquality reflector
-    # Установка игровых пакетов
-    pacman -S --needed --noconfirm mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon gamemode lib32-gamemode steam pavucontrol
-    # Рабочая среда KDE
-    pacman -S --needed --noconfirm plasma-sdk kio-extras plasma-browser-integration filelight krdc
-    # CMD utilities
-    pacman -S --needed --noconfirm ripgrep bat lsd duf dust gping fastfetch kitty bottom dos2unix jq yq fzf rclone extra/irqbalance extra/libqalculate htop ghostscript fwupd fwupd-docs github-cli genact
-    # disk management
-    pacman -S --needed --noconfirm ntfs-3g timeshift unrar zip p7zip
-    # additional packages
-    pacman -S --needed --noconfirm vlc mpv tor torbrowser-launcher nyx chromium  gwenview qbittorrent obsidian flameshot krusader libreoffice-fresh-ru okular man-pages man-pages-ru qrca kfind kdenlive
-    # codec for vlc mpv
-    pacman -S --needed --noconfirm gst-libav gst-plugins-good gst-plugins-bad gst-plugins-ugly vlc-plugin-ffmpeg
-    
-    
-    # если используется ядро hardened, то нужно установить заголовки - extra/linux-hardened-headers
-    # поддержка старых видеокарт - xf86-video-ati
-    
+   
+# Скрипт установки пакетов из pacman
+# Список пакетов лежит по соотвествующему пути в lib/pkginstall.sh
+if [[ -f "./lib/pkginstall.sh" ]]; then
+    source "./lib/pkginstall.sh"
+else
+    echo "Модуль пакетов отсутствует в папке lib или нет доступа" >&2
+fi
+
+echo "Пакеты установлены"
+
 else
     echo "Пакеты пропущены"
 fi
-echo "Пакеты установлены"
+
 
 #Добавление правил
 # ufw default allow outgoing
@@ -280,18 +133,20 @@ echo "Пакеты установлены"
 # echo "ufw status"
 # ufw status verbose #Проверка статуса фаервола
 
-if [ "$y" == "yes" ]; then
+
+
+if [ "$mkinitcpio" == "yes" ]; then
     
-    echo "Обновление микрокода"
-    pacman -S --noconfirm amd-ucode
-    mkinitcpio -P
-    grub-mkconfig -o /boot/grub/grub.cfg
-    
-    #Нужно уточнить, нужно ли проводить процедуру после перекомпиляции ядра
+if [[ -f "./lib/mkinitcpio.sh" ]]; then
+    source "./lib/mkinitcpio.sh"
+else
+    echo "Модуль установки микрокода отсутствует в папке lib или нет доступа" >&2
+fi
+echo "Микрокод обновлен"
+
 else
     echo "Микрокод пропущен"
 fi
-echo "Микрокод обновлен"
 
 if [ "$grub_configurator" = "yes" ]; then
     #определяем тип файловой системы для корневого диска
@@ -339,76 +194,13 @@ sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus
 sudo -u "$user_nosudo" DBUS_SESSION_BUS_ADDRESS="unix:path=$USER_RUNTIME_DIR/bus" XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" systemctl --user status gamemoded
 
 
-# установка kitty с ranger
-
-echo "Installing ranger and configuring it for image previews in kitty terminal..."
-pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow
-
-#Получаем домашнюю директорию пользователя
-if [[ $EUID -eq 0 ]] && [[ -n "$SUDO_USER" ]]; then
-    #$EUID - переменная, которая содержит ID текущего пользователя
-    # -eq - аналог == для других языков
-    # 0 - это ID суперпользователя (root)
-    # [[ $EUID -eq 0 ]] - условие: если текущий пользователь - суперпользователь
-    # && - логическое "и"; оба условия должны быть истинными
-    # -n - проверка что строка не пустая
-    # $SUDO_USER - переменная в которой храниться имя пользователя, который  запустил команду через sudo
-    # [[ -n "$SUDO_USER" ]] - проверяется, что в переменной пользователя, который запустил через sudo, не пустая
-    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
-    # getent - команда, которая позволяет получать записи из системных баз данных Linux, к примеру passwd, group или hosts
-    # Синтаксис: getent <база данных> <ключ> - getent passwd "$SUDO_USER"
-    # getent passwd "$SUDO_USER" - ищем в справочнике passwd пользователя, который запустил команду через sudo
-    # | (pipe) — это оператор, который перенаправляет вывод одной команды (getent) на вход другой
-    # cut - вывод команды в поток
-    # -d: - разделитель, который используется в файле passwd (записи разделены двоеточиями)
-    # -f6 - вывод шестого поля, которое соответствует домашней директории пользователя
+# Установка kitty с ranger
+if [[ -f "./lib/kitty.sh" ]]; then
+    source "./lib/kitty.sh"
 else
-    USER_HOME="$HOME"
+    echo "Модуль установки kitty отсутствует в папке lib или нет доступа" >&2
 fi
 
-#домашняя директория пользователя содержиться в $USER_HOME
-echo "Домашняя директория пользователя: $USER_HOME"
-
-#Копируем конфигурационные файлы ranger
-echo "Copying ranger configuration files..."
-sudo -u "$SUDO_USER" ranger --copy-config=all
-echo "Ranger configuration"
-
-rcconf="$USER_HOME/.config/ranger/rc.conf"
-metpreview="kitty"
-
-# Проверка существования файла rc.conf
-if [[ -f "$rcconf" ]]; then
-    # Настройка preview_images
-    if grep -q "^set preview_images" "$rcconf"; then
-        if grep -q "^set preview_images true" "$rcconf"; then
-            echo "set preview_images true already exists in $rcconf."
-        else
-            sed -i 's/^set preview_images.*/set preview_images true/' "$rcconf"
-            echo "Updated set preview_images to true in $rcconf."
-        fi
-    else
-        echo "set preview_images true" >> "$rcconf"
-        echo "Added set preview_images true to $rcconf."
-    fi
-    
-    # Настройка preview_images_method
-    if grep -q "^set preview_images_method" "$rcconf"; then
-        if grep -q "^set preview_images_method $metpreview" "$rcconf"; then
-            echo "set preview_images_method $metpreview already exists in $rcconf."
-        else
-            sed -i "s/^set preview_images_method.*/set preview_images_method $metpreview/" "$rcconf"
-            echo "Updated set preview_images_method to $metpreview in $rcconf."
-        fi
-    else
-        echo "set preview_images_method $metpreview" >> "$rcconf"
-        echo "Added set preview_images_method $metpreview to $rcconf."
-    fi
-    
-    echo "kitty terminal installed and ranger configured with image previews."
-else
-    echo "Error: $rcconf not found."
-fi
 # окончание установки kitty с ranger
 
 # Заменяем количество одновременных процессов сборки на количество доступных процессоров
@@ -519,21 +311,12 @@ fi
 # Окончание установки aur helper
 
 #Установка пакетов из aur helper
-if [ "$yay_packages" = "yes" ]; then
-    sudo -u "$SUDO_USER" bash -c "
-cd ~
-$aur_choice -S --needed --noconfirm nohang-git aur/minq-ananicy-git aur/stacer-bin xdman8-beta-git firefox-extension-xdman8-browser-monitor-bin aur/php-codesniffer-phpcsutils aur/php-codesniffer-phpcsextra  visual-studio-code-bin
-    "
-    
-    # Выполняем дополнительную команду, если выбран yay
-    if [[ $aur_choice == "yay" ]]; then
-        yay -Yc --noconfirm
-    fi
-    
-    # extra/irqbalance extra/libqalculate
-    cp /etc/nohang/nohang-desktop.conf /etc/nohang/nohang.conf
+# Список пакетов, проверка конфликтов с установленными аналогами и
+# настройка nohang вынесены в модуль lib/pkgAurInstall.sh
+if [[ -f "./lib/pkgAurInstall.sh" ]]; then
+    source "./lib/pkgAurInstall.sh"
 else
-    echo "aur packages были пропущены"
+    echo "Модуль AUR-пакетов отсутствует в папке lib или нет доступа" >&2
 fi
 #Установка пакетов из aur helper
 

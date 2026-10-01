@@ -62,9 +62,11 @@ srch_grub_default="GRUB_CMDLINE_LINUX_DEFAULT"
 grub_configurator="yes"
 
 #Ограничение журнала
-journalctl --vacuum-size=30M
-journalctl --verify
-systemctl restart systemd-journald
+if [[ -f "./lib/journal.sh" ]]; then
+    source "./lib/journal.sh"
+else
+    echo "Модуль ограничения журнала отсутствует в папке lib или нет доступа" >&2
+fi
 
 #Проверка для создания бэкапа journal.conf
 if [ -f "$file.original" ]; then
