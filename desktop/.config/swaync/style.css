@@ -1,0 +1,243 @@
+/* Цветовая палитра Walker и Waybar */
+@define-color panel #192638;
+@define-color raised #25344a;
+@define-color raised_hover #2d4059;
+@define-color selected #344d70;
+@define-color selected_hover #42628d;
+@define-color text #edf2fa;
+@define-color muted #aebdd0;
+@define-color accent #73acfa;
+@define-color border #34445a;
+@define-color border_focus #42556d;
+@define-color danger #e6a3ad;
+
+/* Общие настройки */
+* {
+    font-family: Cantarell, sans-serif;
+    font-size: 12px;
+    color: @text;
+}
+
+/* Строка уведомления */
+.notification-row {
+    outline: none;
+}
+
+/* Карточка уведомления */
+.notification-background {
+    background: @raised;
+    border: 1px solid @border;
+    border-radius: 13px;
+    margin: 6px 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+}
+
+/* Подсветка уведомления при наведении */
+.notification-background:hover {
+    background: @raised_hover;
+    border-color: @border_focus;
+}
+
+/* Содержимое уведомления */
+.notification {
+    background: transparent;
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+.notification-content {
+    background: transparent;
+}
+
+/* Заголовок уведомления */
+.notification .summary {
+    color: @text;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Текст уведомления */
+.notification .body {
+    color: @muted;
+    font-size: 12px;
+}
+
+/* Время уведомления */
+.notification .time {
+    color: @muted;
+    font-size: 11px;
+}
+
+/* Кнопки действий уведомления */
+.notification .notification-action {
+    background: @selected;
+    color: @text;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+.notification .notification-action:hover {
+    background: @selected_hover;
+    border-color: @border_focus;
+}
+
+/* Кнопка закрытия уведомления */
+.close-button {
+    background: @selected;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: none;
+}
+
+.close-button:hover {
+    background: @selected_hover;
+    border-color: @accent;
+}
+
+/* Уведомления высокой важности */
+.notification.critical {
+    background: @raised;
+    border-radius: 12px;
+}
+
+.notification.critical .summary {
+    color: @danger;
+}
+
+/* Основное окно центра уведомлений */
+.control-center {
+    background: @panel;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+}
+
+/* Карточки внутри центра уведомлений */
+.control-center .notification-background {
+    background: @raised;
+    border: 1px solid @border;
+    border-radius: 10px;
+    box-shadow: none;
+    margin: 5px 0;
+}
+
+.control-center .notification-background:hover {
+    background: @raised_hover;
+    border-color: @border_focus;
+}
+
+/* Заголовок центра уведомлений */
+.widget-title {
+    margin: 4px 2px 12px 2px;
+}
+
+.widget-title > label {
+    color: @text;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Кнопка очистки уведомлений */
+.widget-title button {
+    background: @raised;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: 8px;
+    padding: 7px 12px;
+    box-shadow: none;
+}
+
+.widget-title button:hover {
+    background: @selected;
+    border-color: @border_focus;
+}
+
+/* Переключатель режима "Не беспокоить" */
+.widget-dnd {
+    background: @raised;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 4px 0;
+}
+
+/* Подпись режима "Не беспокоить" */
+.widget-dnd > label {
+    color: @text;
+    font-weight: 600;
+}
+
+/* Фон переключателя */
+.widget-dnd > switch {
+    background: @border;
+    border: 1px solid @border_focus;
+    border-radius: 20px;
+}
+
+/* Активный режим "Не беспокоить" */
+.widget-dnd > switch:checked {
+    background: @accent;
+    border-color: @accent;
+}
+
+/* Ползунок переключателя */
+.widget-dnd > switch slider {
+    background: @text;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* Текстовые блоки центра уведомлений */
+.widget-label {
+    color: @muted;
+    margin: 8px 0;
+}
+
+/* Медиауправление, если включён виджет MPRIS */
+.widget-mpris {
+    background: @raised;
+    border: 1px solid @border;
+    border-radius: 11px;
+    padding: 10px;
+    margin: 5px 0;
+}
+
+.widget-mpris-title {
+    color: @text;
+    font-weight: 700;
+}
+
+.widget-mpris-subtitle {
+    color: @muted;
+}
+
+/* Кнопки быстрого доступа, если виджет включён */
+.widget-buttons-grid {
+    margin: 6px 0;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button {
+    background: @raised;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: 9px;
+    padding: 10px;
+    box-shadow: none;
+}
+
+.widget-buttons-grid > flowbox > flowboxchild > button:hover {
+    background: @selected;
+    border-color: @border_focus;
+}
+
+/* Подсветка активной кнопки */
+.widget-buttons-grid > flowbox > flowboxchild > button:checked {
+    background: @selected;
+    border-color: @accent;
+}

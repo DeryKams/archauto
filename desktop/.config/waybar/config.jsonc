@@ -1,0 +1,151 @@
+{
+  // Основные настройки панели
+  "layer": "top",
+  "position": "top",
+  "height": 30,
+  // Расположение модулей
+  // Модули слева: питание и рабочие столы
+  "modules-left": [
+    "custom/power",
+    "custom/hotkeys",
+    "niri/workspaces"
+  ],
+  "modules-center": [
+    "niri/window"
+  ],
+  "modules-right": [
+    "network",
+    "wireplumber",
+    "backlight",
+    "power-profiles-daemon",
+    "niri/language",
+    "custom/clipboard",
+    "custom/notifications",
+    "clock",
+    "tray"
+  ],
+  // Предпросмотр текущего буфера обмена
+  "custom/clipboard": {
+    // Скрипт получает последний скопированный текст
+    "exec": "$HOME/.config/waybar/scripts/clipboard-preview.sh",
+    // Скрипт возвращает JSON с текстом и подсказкой
+    "return-type": "json",
+    // Текстовое обозначение буфера и его содержимое
+    "format": "▣ {text}",
+    // Ограничиваем количество отображаемых символов
+    "max-length": 16,
+    // Обновляем содержимое каждую секунду
+    "interval": 1,
+    // Экранируем специальные символы скопированного текста
+    "escape": true,
+    // Показываем полный текст при наведении
+    "tooltip": true,
+    // ЛКМ открывает историю через Walker
+    "on-click": "walker --modules clipboard",
+    // Не запускаем дополнительное обновление после клика
+    "exec-on-event": false
+  },
+  // Меню управления питанием
+  "custom/power": {
+    // Значок на левой стороне панели
+    "format": "⏻",
+    "tooltip": "Управление питанием",
+    // Открываем меню нажатием ЛКМ
+    "menu": "on-click",
+    // Файл графического меню
+    "menu-file": "~/.config/waybar/power_menu.xml",
+    // Команды для пунктов меню
+    "menu-actions": {
+      "lock": "$HOME/.local/bin/arch-waylock",
+      "reboot": "systemctl reboot",
+      "shutdown": "systemctl poweroff"
+    }
+  },
+  // Управление профилями энергопотребления
+  "power-profiles-daemon": {
+    // Отображаем название текущего режима
+    "format": "{icon}",
+    // Названия трёх профилей на русском языке
+    "format-icons": {
+      "power-saver": "Экономия",
+      "balanced": "Баланс",
+      "performance": "Максимум",
+      "default": "Питание"
+    },
+    // Подсказка при наведении мыши
+    "tooltip": true,
+    "tooltip-format": "Профиль: {profile}"
+  },
+  "custom/hotkeys": {
+    // Кнопка вызова списка горячих клавиш
+    "format": "Клавиши",
+    "tooltip": "Показать горячие клавиши Niri",
+    "on-click": "niri msg action show-hotkey-overlay"
+  },
+  // Название активного окна
+  "niri/window": {
+    "max-length": 38
+  },
+  // Центр уведомлений SwayNC
+  "custom/notifications": {
+    "format": "Уведомления",
+    "on-click": "swaync-client -t",
+    "tooltip": false
+  },
+  // Индикатор и переключатель раскладки клавиатуры
+  // Индикатор раскладки с выпадающим меню
+  "niri/language": {
+    "format": "{short}",
+    "format-en": "EN",
+    "format-ru": "RU",
+    // ЛКМ открывает графическое меню
+    "menu": "on-click",
+    // XML с пунктами меню
+    "menu-file": "$HOME/.config/waybar/language-menu.xml",
+    // Назначаем действия пунктам меню
+    "menu-actions": {
+      "english": "niri msg action switch-layout 0",
+      "russian": "niri msg action switch-layout 1"
+    },
+    "tooltip": false
+  },
+  // Дата и время
+  "clock": {
+    "locale": "ru_RU.UTF-8",
+    "format": "{:%a %d %b  %H:%M}"
+  },
+  // Сетевое подключение
+  "network": {
+    "format-ethernet": "{ipaddr}",
+    "format-wifi": "{essid}",
+    "format-disconnected": "offline"
+  },
+  // Управление громкостью
+  "wireplumber": {
+    "format": "Звук {volume}%",
+    "format-muted": "Звук выкл.",
+    // Изменение громкости колесом мыши на 5%
+    "scroll-step": 5,
+    // Максимальная громкость 100%
+    "max-volume": 100,
+    // ЛКМ: выключить или включить звук
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+    // ПКМ: открыть микшер громкости
+    "on-click-right": "pavucontrol"
+  },
+  // Управление яркостью экрана
+  "backlight": {
+    "format": "Яркость {percent}%",
+    // Прокрутка вверх: увеличить яркость на 5%
+    "on-scroll-up": "brightnessctl --class=backlight set +5%",
+    // Прокрутка вниз: уменьшить яркость на 5%
+    // Минимальное аппаратное значение яркости — 1
+    "on-scroll-down": "brightnessctl --class=backlight --min-value=1 set 5%-"
+    // # Проверяем наличие устройств управления яркостью
+    // brightnessctl --class=backlight --list
+    // # Проверяем текущий уровень яркости
+    // brightnessctl --class=backlight info
+    // # Перезапускаем Waybar
+    // systemctl --user restart waybar.service
+  }
+}

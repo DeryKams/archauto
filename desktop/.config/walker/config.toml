@@ -1,0 +1,5 @@
+theme = "apple-dark"
+
+[providers]
+default = ["desktopapplications", "calc", "runner"]
+empty = ["desktopapplications"]

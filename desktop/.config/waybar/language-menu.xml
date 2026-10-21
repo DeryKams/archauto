@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <!-- Выпадающее меню выбора раскладки -->
+    <object class="GtkMenu" id="menu">
+
+        <!-- Английская раскладка -->
+        <child>
+            <object class="GtkMenuItem" id="english">
+                <property name="label">English (US)</property>
+            </object>
+        </child>
+
+        <!-- Русская раскладка -->
+        <child>
+            <object class="GtkMenuItem" id="russian">
+                <property name="label">Русский</property>
+            </object>
+        </child>
+
+    </object>
+</interface>

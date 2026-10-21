@@ -1,0 +1,19 @@
+{
+  "positionX": "right",
+  "positionY": "top",
+  "control-center-width": 360,
+  "control-center-height": -1,
+  "fit-to-screen": false,
+  "control-center-margin-top": 42,
+  "control-center-margin-right": 12,
+  "notification-window-width": 320,
+  "notification-grouping": true,
+  "transition-time": 120,
+  "timeout": 5,
+  "text-empty": "Нет уведомлений",
+  "widgets": ["title", "dnd", "notifications"],
+  "widget-config": {
+    "title": {"text": "Центр", "button-text": "Очистить"},
+    "dnd": {"text": "Не беспокоить"}
+  }
+}

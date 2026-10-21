@@ -1,0 +1,167 @@
+input {
+    // Настройки клавиатуры
+    keyboard {
+        xkb {
+            // Английская и русская раскладки
+            layout "us,ru"
+        }
+
+        // Одна текущая раскладка для всех окон
+        track-layout "global"
+    }
+
+    // настройки тачпада
+    touchpad {
+        tap
+        tap-button-map "left-right-middle"
+    }
+}
+
+layout {
+    gaps 12
+    background-color "#0d1420"
+
+    focus-ring {
+        width 2
+        active-color "#73acfa"
+        inactive-color "#25344a"
+    }
+
+    shadow {
+        on
+        softness 18
+        spread 1
+        offset x=0 y=4
+        draw-behind-window true
+        color "#00000050"
+    }
+}
+
+window-rule {
+    geometry-corner-radius 13
+    clip-to-geometry true
+}
+
+spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+binds {
+    // KDE Meta = Super (клавиша Windows). Super не меняется на Alt в nested-сессии Niri.
+    // Источники: https://docs.kde.org/trunk_kf6/en/khelpcenter/fundamentals/kbd.html
+    // https://github.com/KDE/kwin/blob/master/src/useractions.cpp
+    // https://github.com/KDE/kwin/blob/master/src/virtualdesktops.cpp
+    // https://github.com/KDE/spectacle/blob/master/desktop/org.kde.spectacle.desktop.cmake
+
+    // Переключение языка по Shift + Space
+    Shift+Space repeat=false {
+        switch-layout "next";
+    }
+    // Открывает графическое меню горячих клавиш Niri
+    Mod+Shift+Slash repeat=false {
+        show-hotkey-overlay;
+    }
+    // Открывает графическую историю буфера обмена в Walker
+    Mod+V repeat=false {
+        spawn "walker" "--modules" "clipboard";
+    }
+
+    // Запуск приложений: Kitty вместо Konsole, Walker вместо KRunner.
+    // Без AUR Fuzzel запускает приложения, но не заменяет все провайдеры Walker.
+    Ctrl+Alt+T repeat=false { spawn "kitty"; }
+    Alt+Space repeat=false { spawn-sh "if command -v walker >/dev/null 2>&1; then exec walker; else exec fuzzel; fi"; }
+    Alt+F2 repeat=false { spawn-sh "if command -v walker >/dev/null 2>&1; then exec walker; else exec fuzzel; fi"; }
+
+    // История буфера: Walker + elephant-clipboard вместо Klipper.
+    // При --skip-aur история недоступна; wl-clipboard сам историю не хранит.
+    Super+V repeat=false { spawn-sh "if command -v walker >/dev/null 2>&1; then exec walker --provider clipboard; fi"; }
+
+    // Окна: максимизация окна, не fullscreen и не растягивание всей колонки.
+    Alt+F4 repeat=false { close-window; }
+    Super+Page_Up repeat=false { maximize-window-to-edges; }
+    Super+W repeat=false { toggle-overview; }
+    Super+Alt+Left { focus-column-or-monitor-left; }
+    Super+Alt+Right { focus-column-or-monitor-right; }
+    Super+Alt+Up { focus-window-or-monitor-up; }
+    Super+Alt+Down { focus-window-or-monitor-down; }
+    Super+Shift+Left { move-window-to-monitor-previous; }
+    Super+Shift+Right { move-window-to-monitor-next; }
+
+    // В Niri рабочие столы динамические и вертикальные, отдельно на каждом мониторе.
+    // Номер означает текущий индекс: пустые столы не закрепляются этими биндами.
+    Ctrl+F1 { focus-workspace 1; }
+    Ctrl+F2 { focus-workspace 2; }
+    Ctrl+F3 { focus-workspace 3; }
+    Ctrl+F4 { focus-workspace 4; }
+    Super+F1 { focus-workspace 1; }
+    Super+F2 { focus-workspace 2; }
+    Super+F3 { focus-workspace 3; }
+    Super+F4 { focus-workspace 4; }
+    Super+Ctrl+Up { focus-workspace-up; }
+    Super+Ctrl+Down { focus-workspace-down; }
+    Super+Ctrl+Shift+Up { move-window-to-workspace-up focus=false; }
+    Super+Ctrl+Shift+Down { move-window-to-workspace-down focus=false; }
+
+    // Waylock вместо экрана блокировки Plasma. Ctrl+Alt+L — старое сочетание KDE.
+    Super+L repeat=false allow-inhibiting=false { spawn-sh "$HOME/.local/bin/arch-waylock"; }
+    Ctrl+Alt+L repeat=false allow-inhibiting=false { spawn-sh "$HOME/.local/bin/arch-waylock"; }
+    XF86ScreenSaver repeat=false allow-inhibiting=false { spawn-sh "$HOME/.local/bin/arch-waylock"; }
+    // Вместо меню завершения сеанса Plasma — диалог подтверждения выхода из Niri.
+    Ctrl+Alt+Delete repeat=false { quit; }
+
+    // Встроенные снимки Niri вместо Spectacle; Print открывает выбор области.
+    Print repeat=false { screenshot; }
+    Super+Shift+S repeat=false { screenshot; }
+    Super+Shift+Print repeat=false { screenshot; }
+    Super+Print repeat=false { screenshot-window; }
+
+    // Медиаклавиши: WirePlumber управляет звуком, playerctl — MPRIS-плеером.
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%+" "--limit" "1.0"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-"; }
+    XF86AudioMute repeat=false allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    XF86AudioMicMute repeat=false allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle"; }
+    XF86AudioPlay repeat=false allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioPause repeat=false allow-when-locked=true { spawn "playerctl" "pause"; }
+    XF86AudioStop repeat=false allow-when-locked=true { spawn "playerctl" "stop"; }
+    XF86AudioPrev allow-when-locked=true { spawn "playerctl" "previous"; }
+    XF86AudioNext allow-when-locked=true { spawn "playerctl" "next"; }
+    // Только подсветка экрана: без привязки к конкретному amdgpu/intel-устройству.
+    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+5%"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "--min-value=1" "set" "5%-"; }
+
+    // Отсутствующие приложения: примеры отключены, пакеты не добавляются в установку.
+    // Super+E { spawn "dolphin"; } // Файлового менеджера в DESKTOP_PACKAGES нет.
+    // Super+Escape { spawn "plasma-systemmonitor"; } // Монитора системы нет.
+
+    // Возможности KDE без прямого эквивалента в Niri 26.04:
+    // Meta отдельно — меню приложений; нужен обработчик одиночного модификатора.
+    // Alt+Tab / Alt+Shift+Tab — обход окон по истории с переключателем KWin.
+    // focus-window-previous переключает только последнее окно и не заменяет Alt+Tab.
+    // Alt+F3 — меню операций окна KWin.
+    // Super+Page_Down — свернуть окно; у Niri нет состояния minimized.
+    // Super+BackSpace — восстановить геометрию окна после quick tile/maximize.
+    // Super+Left/Right/Up/Down — quick tile по половинам экрана, не переключение фокуса.
+    // Super+D — показать рабочий стол; переключение на пустой workspace не эквивалентно.
+    // Super+Q, Super+Tab, Super+Shift+Tab — Activities; это не workspaces Niri.
+    // Super+G — двумерная сетка рабочих столов Plasma.
+    // Super+Ctrl+Left/Right — соседний стол по горизонтали; у Niri столы вертикальные.
+    // Super+Ctrl+Shift+Left/Right — перенос окна на горизонтальный соседний стол.
+    // Super+Ctrl+A — активировать окно, требующее внимания; готового действия нет.
+    // Super+Ctrl+Escape — выбрать окно для принудительного завершения.
+    // Super+Equal/Minus/0 — масштабирование рабочего стола (эффект Zoom KWin).
+    // Shift+Print — весь рабочий стол со всеми мониторами; screenshot-screen снимает один.
+    // Super+Ctrl+Print — выбор окна для снимка, не обязательно активного.
+    // Super+R / Super+Shift+R — запись области; отдельный рекордер не установлен.
+    // Super+Alt+R — запись экрана; Super+Ctrl+R — запись окна.
+    // Ctrl+C/V/Z/Q, F1/F11 и другие локальные сочетания обрабатывает приложение,
+    // поэтому здесь их не перехватываем глобально.
+
+    // Прежние сочетания проекта, не конфликтующие с назначениями KDE.
+    // Mod+D и Mod+Q убраны: в KDE это рабочий стол и Activities, а не запуск/закрытие.
+    Mod+Return repeat=false { spawn "kitty"; }
+    Super+Alt+L repeat=false allow-inhibiting=false { spawn-sh "$HOME/.local/bin/arch-waylock"; }
+    Mod+N repeat=false { spawn "swaync-client" "-t"; }
+    Mod+Shift+E repeat=false { quit; }
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+    <!-- Главное меню управления питанием -->
+    <object class="GtkMenu" id="menu">
+
+        <!-- Блокировка экрана -->
+        <child>
+            <object class="GtkMenuItem" id="lock">
+                <property name="label">Блокировка</property>
+            </object>
+        </child>
+
+        <!-- Разделитель -->
+        <child>
+            <object class="GtkSeparatorMenuItem" id="separator"/>
+        </child>
+
+        <!-- Перезагрузка системы -->
+        <child>
+            <object class="GtkMenuItem" id="reboot">
+                <property name="label">Перезагрузка</property>
+            </object>
+        </child>
+
+        <!-- Выключение компьютера -->
+        <child>
+            <object class="GtkMenuItem" id="shutdown">
+                <property name="label">Выключение</property>
+            </object>
+        </child>
+
+    </object>
+</interface>

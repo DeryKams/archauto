@@ -1,0 +1,300 @@
+/* Основные настройки */
+* {
+    font-family: "Cantarell", sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    min-height: 0;
+}
+
+/* Основная панель */
+window#waybar {
+    background-color: rgba(15, 22, 35, 0.96);
+    color: #e6edf7;
+    border-bottom: 1px solid #2b3a50;
+}
+
+/* Название активного окна */
+#window {
+    color: #aabbd2;
+    padding: 0 14px;
+    margin: 4px 8px;
+    font-weight: 500;
+}
+
+#window.empty {
+    color: transparent;
+}
+
+/* Контейнер рабочих столов */
+#workspaces {
+    background-color: #1c2a3d;
+    border: 1px solid #304159;
+    border-radius: 11px;
+    margin: 4px 0 4px 10px;
+    padding: 0 4px;
+}
+
+/* Кнопки рабочих столов */
+#workspaces button {
+    color: #8297b3;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    box-shadow: none;
+    text-shadow: none;
+    padding: 0 10px;
+    margin: 3px 2px;
+    min-width: 16px;
+}
+
+/* Наведение на рабочий стол */
+#workspaces button:hover {
+    color: #e6edf7;
+    background-color: #344862;
+    box-shadow: none;
+}
+
+/* Активный рабочий стол */
+#workspaces button.active,
+#workspaces button.focused {
+    color: #ffffff;
+    background-color: #4269a3;
+    box-shadow: inset 0 -2px #8cbcff;
+}
+
+/* Рабочий стол с важным уведомлением */
+#workspaces button.urgent {
+    color: #ffffff;
+    background-color: #b75670;
+}
+
+/* Общий стиль модулей справа */
+#network,
+#wireplumber,
+#backlight,
+#clock,
+#tray,
+#custom-notifications {
+    background-color: #1e2c40;
+    border: 1px solid #304159;
+    border-radius: 9px;
+    padding: 0 11px;
+    margin: 4px 3px;
+}
+
+/* Сетевое соединение */
+#network {
+    color: #9bd9c1;
+}
+
+#network.disconnected {
+    color: #f0a2aa;
+    background-color: #402b39;
+}
+
+/* Громкость звука */
+#wireplumber {
+    color: #a8d4ff;
+}
+
+#wireplumber.muted {
+    color: #8390a5;
+    background-color: #222b3a;
+}
+
+/* Яркость экрана */
+#backlight {
+    color: #f5d59c;
+}
+
+/* Часы и дата */
+#clock {
+    color: #e4d5ff;
+    background-color: #293550;
+    border-color: #3a4b6d;
+    font-weight: 600;
+    padding: 0 14px;
+}
+
+/* Центр уведомлений */
+#custom-notifications {
+    color: #d0c0ff;
+    background-color: #2c304d;
+    border-color: #45466e;
+}
+
+#custom-notifications:hover {
+    color: #ffffff;
+    background-color: #41466d;
+}
+
+/* Системный трей */
+#tray {
+    color: #d7e3f5;
+    margin-right: 10px;
+}
+
+/* Всплывающие подсказки */
+tooltip {
+    background-color: #1c293c;
+    border: 1px solid #425571;
+    border-radius: 10px;
+    color: #e6edf7;
+}
+
+tooltip label {
+    color: #e6edf7;
+    padding: 5px 8px;
+}
+/* Переключатель профилей энергопотребления */
+#power-profiles-daemon {
+    color: #edf2fa;
+    background: #25344a;
+    border: 1px solid #34445a;
+    border-radius: 8px;
+    padding: 0 12px;
+    margin: 4px 3px;
+    font-weight: 600;
+}
+
+/* Подсветка при наведении курсора */
+#power-profiles-daemon:hover {
+    background: #344d70;
+    border-color: #73acfa;
+}
+
+/* Фон выпадающего меню */
+menu {
+    background: #192638;
+    color: #edf2fa;
+    border: 1px solid #34445a;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+/* Пункты выбора языка */
+menuitem {
+    color: #edf2fa;
+    border-radius: 7px;
+    padding: 7px 12px;
+}
+
+/* Выделение пункта под курсором */
+menuitem:hover {
+    background: #344d70;
+    color: #edf2fa;
+}
+/* Индикатор раскладки клавиатуры */
+#language {
+    color: #edf2fa;
+    background: #25344a;
+    border: 1px solid #34445a;
+    border-radius: 8px;
+    padding: 0 12px;
+    margin: 4px 3px;
+    font-weight: 600;
+}
+
+/* Подсветка при наведении */
+#language:hover {
+    background: #344d70;
+    border-color: #73acfa;
+}
+
+/* Английская раскладка */
+#language.us {
+    color: #edf2fa;
+}
+
+/* Русская раскладка */
+#language.ru {
+    color: #73acfa;
+}
+/* Кнопка справки по горячим клавишам */
+#custom-hotkeys {
+    color: #edf2fa;
+    background: #25344a;
+    border: 1px solid #34445a;
+    border-radius: 8px;
+    padding: 0 12px;
+    margin: 4px 3px;
+}
+
+/* Подсветка при наведении */
+#custom-hotkeys:hover {
+    background: #344d70;
+    border-color: #73acfa;
+}
+
+/* Кнопка управления питанием */
+#custom-power {
+    color: #73acfa;
+    background: #25344a;
+    border: 1px solid #34445a;
+    border-radius: 8px;
+    padding: 0 12px;
+    margin: 4px 3px 4px 10px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Подсветка кнопки при наведении */
+#custom-power:hover {
+    color: #edf2fa;
+    background: #344d70;
+    border-color: #73acfa;
+}
+
+/* Выпадающее GTK-меню */
+menu {
+    background: #192638;
+    color: #edf2fa;
+    border: 1px solid #34445a;
+    border-radius: 10px;
+    padding: 6px;
+}
+
+/* Пункты меню */
+menuitem {
+    color: #edf2fa;
+    border-radius: 7px;
+    padding: 8px 14px;
+}
+
+/* Подсветка выбранного пункта */
+menuitem:hover {
+    background: #344d70;
+    color: #edf2fa;
+}
+
+/* Разделители меню */
+menu separator {
+    background: #34445a;
+    min-height: 1px;
+    margin: 4px 6px;
+}
+/* Виджет последнего скопированного текста */
+#custom-clipboard {
+    color: #edf2fa;
+    background: #25344a;
+    border: 1px solid #34445a;
+    border-radius: 8px;
+
+    /* Минимальная ширина поля */
+    min-width: 128px;
+
+    /* Размеры и расположение */
+    padding: 0;
+    margin: 4px 3px;
+
+    font-family: Cantarell, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Подсветка при наведении */
+#custom-clipboard:hover {
+    color: #ffffff;
+    background: #344d70;
+    border-color: #73acfa;
+}
