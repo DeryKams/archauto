@@ -1,0 +1,6 @@
+#!/bin/sh
+exec /usr/bin/waylock \
+    -init-color 0x0d1420 \
+    -input-color 0x25344a \
+    -fail-color 0x873b45 \
+    "$@"
