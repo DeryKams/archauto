@@ -16,7 +16,6 @@ USER_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
     exit 1
 }
 DOTFILES="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-source "$DOTFILES/desktop-packages.sh"
 
 # Проверки
 [[ -d "$DOTFILES/desktop/.config" && -x "$DOTFILES/desktop/.local/bin/arch-waylock" &&
@@ -39,14 +38,11 @@ else
 fi
 
 #Включение trim
-if [ "$trim" = "yes" ]; then
     systemctl enable --now fstrim.timer
     fstrim -va
     echo "Статус службы fstrim"
     systemctl status fstrim.timer
-else
-    echo "trim был пропущен"
-fi
+
 
 # Настройка swap и cache pressure в systemctl
 if [[ -f "./lib/sysctl.sh" ]]; then
@@ -107,7 +103,7 @@ GAME_PACKAGES=(
 CONSOLE_UTILS=(
     ripgrep bat lsd duf dust gping dos2unix jq yq
     rclone irqbalance libqalculate htop
-    nano vim qrencode
+    nano vim qrencode tree
 )
 
 # Диски и архивы
