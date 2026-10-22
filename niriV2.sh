@@ -18,7 +18,7 @@ USER_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
 DOTFILES="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # Проверяем комплект модулей до изменения системных настроек.
-for module in journal sysctl pacman wine kitty; do
+for module in locale journal sysctl pacman wine kitty; do
     module_path="$DOTFILES/lib/$module.sh"
     if [[ ! -f "$module_path" || ! -r "$module_path" ]]; then
         echo "Обязательный модуль отсутствует или недоступен: $module_path" >&2
@@ -38,6 +38,9 @@ if [[ -L "$USER_HOME/.config" &&
     exit 1
 fi
 
+
+# Локали для рабочего окружения, включая часы Waybar.
+source "$DOTFILES/lib/locale.sh"
 
 #Ограничение журнала systemd
 source "$DOTFILES/lib/journal.sh"
@@ -63,6 +66,10 @@ DESKTOP_PACKAGES=(
     stow git fzf neovim rust imagemagick
     pipewire-alsa grim slurp papirus-icon-theme
     pcmanfm-qt gvfs
+    python
+    python-gobject
+    gtk3
+    gtk-layer-shell
 )
 
 
@@ -103,7 +110,8 @@ DISK_UTILS=(
 
 APPLICATIONS=(
     chromium mpv vlc tor torbrowser-launcher nyx
-    qbittorrent obsidian flameshot libreoffice-fresh-ru
+    qbittorrent obsidian flameshot libreoffice-fresh-ru 
+    krdc freerdp
 )
 
 # Кодеки

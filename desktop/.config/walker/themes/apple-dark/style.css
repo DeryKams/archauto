@@ -1,163 +1,160 @@
-/* Цветовая палитра Walker */
-@define-color window_bg_color #192638;
-@define-color accent_bg_color #344d70;
+/* Селекторы штатного layout Walker v2.17.2; собственный CSS заменяет встроенный. */
+@define-color window_bg_color rgba(25, 38, 56, 0.82);
 @define-color theme_fg_color #edf2fa;
 @define-color theme_muted_color #aebdd0;
-@define-color module_bg_color #25344a;
-@define-color border_color #34445a;
-@define-color input_border_color #42556d;
+@define-color border_color rgba(255, 255, 255, 0.40);
+@define-color hover_color rgba(255, 255, 255, 0.12);
+@define-color selected_color rgba(255, 255, 255, 0.18);
 @define-color accent_color #73acfa;
 
-/* Общие настройки */
 * {
+    all: unset;
     font-family: Cantarell, sans-serif;
     font-size: 12px;
-    font-weight: 500;
-    min-height: 0;
-}
-
-/* Основная панель */
-window#waybar {
-    background: @window_bg_color;
     color: @theme_fg_color;
-    border-bottom: 1px solid @border_color;
 }
 
-/* Название активного окна */
-#window {
-    color: @theme_muted_color;
-    padding: 0 14px;
-    margin: 4px 8px;
-}
-
-#window.empty {
+.window {
     background: transparent;
 }
 
-/* Контейнер рабочих столов */
-#workspaces {
-    background: @module_bg_color;
-    border: 1px solid @border_color;
-    border-radius: 9px;
-    margin: 4px 0 4px 10px;
-    padding: 0 3px;
-}
-
-/* Кнопки рабочих столов */
-#workspaces button {
-    color: @theme_muted_color;
-    background: transparent;
-    border: none;
-    border-radius: 7px;
-    margin: 3px 2px;
-    padding: 0 10px;
-    box-shadow: none;
-    text-shadow: none;
-    transition: background 150ms ease;
-}
-
-/* Наведение на рабочий стол */
-#workspaces button:hover {
-    color: @theme_fg_color;
-    background: @accent_bg_color;
-    box-shadow: none;
-}
-
-/* Активный рабочий стол */
-#workspaces button.active,
-#workspaces button.focused {
-    color: @theme_fg_color;
-    background: @accent_bg_color;
-    box-shadow: inset 0 -2px @accent_color;
-}
-
-/* Рабочий стол с важным событием */
-#workspaces button.urgent {
-    color: @theme_fg_color;
-    background: #70445a;
-}
-
-/* Общий стиль модулей справа */
-#network,
-#wireplumber,
-#backlight,
-#clock,
-#tray,
-#custom-notifications {
-    color: @theme_fg_color;
-    background: @module_bg_color;
-    border: 1px solid @border_color;
-    border-radius: 8px;
-    padding: 0 10px;
-    margin: 4px 3px;
-    transition: background 150ms ease;
-}
-
-/* Наведение на интерактивные модули */
-#network:hover,
-#wireplumber:hover,
-#backlight:hover,
-#custom-notifications:hover {
-    background: @accent_bg_color;
-    border-color: @input_border_color;
-}
-
-/* Сетевое соединение */
-#network {
-    color: @theme_muted_color;
-}
-
-#network.disconnected {
-    color: #e6a3ad;
-}
-
-/* Громкость звука */
-#wireplumber {
-    color: @theme_fg_color;
-}
-
-#wireplumber.muted {
-    color: @theme_muted_color;
-}
-
-/* Яркость экрана */
-#backlight {
-    color: @theme_fg_color;
-}
-
-/* Часы */
-#clock {
-    color: @theme_fg_color;
-    font-weight: 600;
-    padding: 0 13px;
-}
-
-/* Центр уведомлений */
-#custom-notifications {
-    color: @accent_color;
-}
-
-/* Системный трей */
-#tray {
-    margin-right: 10px;
-}
-
-#tray menu {
+/* Без гарантированного blur более плотный фон сохраняет читаемость. */
+.box-wrapper {
     background: @window_bg_color;
-    color: @theme_fg_color;
     border: 1px solid @border_color;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.30);
+}
+
+.search-container {
+    border-radius: 12px;
+}
+
+.input {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid @border_color;
+    border-radius: 12px;
+    padding: 10px 12px;
+    caret-color: @accent_color;
+}
+
+.input:focus,
+.input:active {
+    border-color: @accent_color;
+}
+
+.input placeholder,
+.item-subtext,
+.placeholder,
+.elephant-hint,
+.keybind-bind {
+    color: @theme_muted_color;
+}
+
+.input selection {
+    background: @selected_color;
+    color: @theme_fg_color;
+}
+
+.normal-icons {
+    -gtk-icon-size: 16px;
+}
+
+.large-icons {
+    -gtk-icon-size: 32px;
+}
+
+.item-box {
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+child:hover .item-box,
+row:hover .item-box {
+    background: @hover_color;
+    border-color: @border_color;
+}
+
+child:selected .item-box,
+row:selected .item-box {
+    background: @selected_color;
+    border-color: @accent_color;
+}
+
+.item-quick-activation,
+.keybind-label {
+    border: 1px solid @border_color;
+    border-radius: 8px;
+    padding: 4px 6px;
+}
+
+.item-image-text {
+    font-size: 28px;
+}
+
+.calc .item-text {
+    font-size: 24px;
+}
+
+.preview {
+    border: 1px solid @border_color;
+    border-radius: 12px;
+}
+
+.preview .large-icons {
+    -gtk-icon-size: 64px;
+}
+
+.keybinds {
+    padding-top: 10px;
+    border-top: 1px solid @border_color;
+}
+
+.keybind-button {
+    border: 1px solid transparent;
     border-radius: 8px;
 }
 
-/* Всплывающие подсказки */
+.keybind-button:hover {
+    background: @hover_color;
+}
+
+.keybind-button:focus-visible {
+    border-color: @accent_color;
+}
+
+.keybind-button:disabled {
+    opacity: 0.5;
+}
+
+scrollbar slider {
+    min-width: 4px;
+    min-height: 4px;
+    border-radius: 8px;
+    background: @border_color;
+}
+
+scrollbar slider:hover {
+    background: @theme_muted_color;
+}
+
+popover contents,
 tooltip {
     background: @window_bg_color;
-    color: @theme_fg_color;
-    border: 1px solid @input_border_color;
-    border-radius: 9px;
+    border: 1px solid @border_color;
+    border-radius: 12px;
+    padding: 10px;
 }
 
-tooltip label {
-    color: @theme_fg_color;
-    padding: 5px 8px;
+.error {
+    color: #e6a3ad;
+    border: 1px solid #e6a3ad;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+:not(.calc).current {
+    font-style: italic;
 }

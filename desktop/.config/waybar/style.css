@@ -147,7 +147,7 @@ tooltip label {
     padding: 5px 8px;
 }
 /* Переключатель профилей энергопотребления */
-#power-profiles-daemon {
+/* #power-profiles-daemon {
     color: #edf2fa;
     background: #25344a;
     border: 1px solid #34445a;
@@ -155,12 +155,50 @@ tooltip label {
     padding: 0 12px;
     margin: 4px 3px;
     font-weight: 600;
-}
+}*/
 
 /* Подсветка при наведении курсора */
-#power-profiles-daemon:hover {
+/*#power-profiles-daemon:hover {
     background: #344d70;
     border-color: #73acfa;
+} 
+*/
+/* Компактный стеклянный индикатор батареи */
+#custom-battery {
+    color: #edf2fa;
+    background-color: rgba(25, 38, 56, 0.30);
+    border: 1px solid rgba(255, 255, 255, 0.62);
+    border-radius: 6px;
+
+    min-width: 68px;
+    min-height: 20px;
+
+    padding: 0 2px;
+    margin: 4px 3px;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* Подсветка контура при наведении */
+#custom-battery:hover {
+    border-color: rgba(255, 255, 255, 0.88);
+}
+
+/* Аккумулятор заряжается */
+#custom-battery.charging {
+    border-color: #9bd9c1;
+}
+
+/* Низкий уровень заряда */
+#custom-battery.low {
+    border-color: #f0a2aa;
+}
+
+/* Аккумулятор отсутствует */
+#custom-battery.no-battery {
+    color: #aebdd0;
+    border-color: rgba(255, 255, 255, 0.30);
 }
 
 /* Фон выпадающего меню */
@@ -298,3 +336,4 @@ menu separator {
     background: #344d70;
     border-color: #73acfa;
 }
+@import url("battery-fill.css");

@@ -17,7 +17,7 @@
     "network",
     "wireplumber",
     "backlight",
-    "power-profiles-daemon",
+    "custom/battery",
     "niri/language",
     "custom/clipboard",
     "custom/notifications",
@@ -34,8 +34,8 @@
     "format": "▣ {text}",
     // Ограничиваем количество отображаемых символов
     "max-length": 16,
-    // Обновляем содержимое каждую секунду
-    "interval": 1,
+    // Скрипт выдаёт JSON по событиям; перезапускаем только после его завершения.
+    "restart-interval": 5,
     // Экранируем специальные символы скопированного текста
     "escape": true,
     // Показываем полный текст при наведении
@@ -50,7 +50,8 @@
   "custom/power": {
     // Значок на левой стороне панели
     "format": "⏻",
-    "tooltip": "Управление питанием",
+    "tooltip": true,
+    "tooltip-format": "Управление питанием",
     // Открываем меню нажатием ЛКМ
     "menu": "on-click",
     // Файл графического меню
@@ -62,25 +63,42 @@
       "shutdown": "systemctl poweroff"
     }
   },
-  // Управление профилями энергопотребления
-  "power-profiles-daemon": {
-    // Отображаем название текущего режима
-    "format": "{icon}",
-    // Названия трёх профилей на русском языке
-    "format-icons": {
-      "power-saver": "Экономия",
-      "balanced": "Баланс",
-      "performance": "Максимум",
-      "default": "Питание"
-    },
-    // Подсказка при наведении мыши
+  // Компактный индикатор батареи и управление профилями питания
+  "custom/battery": {
+    // Получаем процент, состояние и класс заряда из Python
+    "exec": "python3 $HOME/.config/waybar/scripts/battery-status.py",
+    "return-type": "json",
+    // Процент отображается внутри контура батареи
+    "format": "{text}",
+    // Обновляем заряд каждые 5 секунд
+    "interval": 5,
+    // Используем tooltip из Python-скрипта
     "tooltip": true,
-    "tooltip-format": "Профиль: {profile}"
+    // Открываем или закрываем GTK-панель питания
+    "on-click": "python3 $HOME/.config/power-widget/panel.py",
+    // Не запускаем повторное чтение батареи сразу после клика
+    "exec-on-event": false
   },
+  // Управление профилями энергопотребления
+  // "power-profiles-daemon": {
+  //   // Отображаем название текущего режима
+  //   "format": "{icon}",
+  //   // Названия трёх профилей на русском языке
+  //   "format-icons": {
+  //     "power-saver": "Экономия",
+  //     "balanced": "Баланс",
+  //     "performance": "Максимум",
+  //     "default": "Питание"
+  //   },
+  //   // Подсказка при наведении мыши
+  //   "tooltip": true,
+  //   "tooltip-format": "Профиль: {profile}"
+  // },
   "custom/hotkeys": {
     // Кнопка вызова списка горячих клавиш
     "format": "Клавиши",
-    "tooltip": "Показать горячие клавиши Niri",
+    "tooltip": true,
+    "tooltip-format": "Показать горячие клавиши Niri",
     "on-click": "niri msg action show-hotkey-overlay"
   },
   // Название активного окна
@@ -96,7 +114,8 @@
   // Индикатор и переключатель раскладки клавиатуры
   // Индикатор раскладки с выпадающим меню
   "niri/language": {
-    "format": "{short}",
+    // При format-<lang> Waybar передаёт подпись позиционным аргументом.
+    "format": "{}",
     "format-en": "EN",
     "format-ru": "RU",
     // ЛКМ открывает графическое меню

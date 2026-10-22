@@ -99,8 +99,24 @@ alias zshrc='nano ~/.zshrc && exec zsh'
 alias ls='lsd -a --color=auto'
 alias cat='bat --paging=never'
 
-# Выводит файл и одновременно копирует его в буфер обмена
-alias catc='tee >(wl-copy) <'
+# Удаляем прежний алиас при повторном source этого файла.
+unalias catc 2>/dev/null
+
+# Копирует и выводит один файл, не открывая аргументы на запись.
+function catc {
+    if [[ $# -ne 1 ]]; then
+        print -u2 'Использование: catc <файл>'
+        return 1
+    fi
+    if [[ ! -f "$1" || ! -r "$1" ]]; then
+        print -u2 -- "Файл недоступен для чтения: $1"
+        return 1
+    fi
+
+    # Ожидаем результат wl-copy: сбой копирования не должен выглядеть успехом.
+    command wl-copy < "$1" || return
+    command cat < "$1"
+}
 
 # Переход на рабочий стол
 alias home='cd ~/"Рабочий стол"'
@@ -147,12 +163,13 @@ ssh() {
 
 # Генерирует QR-код из переданной строки
 qrgen() {
-    if [[ $# -eq 0 ]]; then
-        echo "Использование: qrgen <текст>"
+    if [[ $# -ne 1 || -z "$1" ]]; then
+        print -u2 'Использование: qrgen "текст"'
         return 1
     fi
 
-    qrencode -t UTF8 -m 2 -i "$1"
+    # Сохраняем регистр; начальный дефис в тексте не становится опцией.
+    qrencode -t UTF8 -m 2 -- "$1"
 }
 
 

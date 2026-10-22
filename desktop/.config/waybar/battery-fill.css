@@ -1,0 +1,1016 @@
+/*
+ * Динамическая шкала аккумулятора для Waybar.
+ * От 0% (мягкий красный) через 50% (янтарный) до 100% (мятно-зелёный).
+ * В каждом правиле заливка непрерывная, цвет плавно меняется с уровнем заряда.
+ * Рамка и типографика остаются в основном style.css.
+ */
+
+/* Заряд 0% */
+#custom-battery.charge-0 {
+    background-image: linear-gradient(
+        to right,
+        rgba(230, 107, 120, 0.48) 0%,
+        rgba(230, 107, 120, 0.70) 0%,
+        transparent 0%
+    );
+}
+
+/* Заряд 1% */
+#custom-battery.charge-1 {
+    background-image: linear-gradient(
+        to right,
+        rgba(230, 109, 120, 0.48) 0%,
+        rgba(230, 109, 120, 0.70) 1%,
+        transparent 1%
+    );
+}
+
+/* Заряд 2% */
+#custom-battery.charge-2 {
+    background-image: linear-gradient(
+        to right,
+        rgba(230, 111, 119, 0.48) 0%,
+        rgba(230, 111, 119, 0.70) 2%,
+        transparent 2%
+    );
+}
+
+/* Заряд 3% */
+#custom-battery.charge-3 {
+    background-image: linear-gradient(
+        to right,
+        rgba(231, 112, 119, 0.48) 0%,
+        rgba(231, 112, 119, 0.70) 3%,
+        transparent 3%
+    );
+}
+
+/* Заряд 4% */
+#custom-battery.charge-4 {
+    background-image: linear-gradient(
+        to right,
+        rgba(231, 114, 119, 0.48) 0%,
+        rgba(231, 114, 119, 0.70) 4%,
+        transparent 4%
+    );
+}
+
+/* Заряд 5% */
+#custom-battery.charge-5 {
+    background-image: linear-gradient(
+        to right,
+        rgba(231, 116, 119, 0.48) 0%,
+        rgba(231, 116, 119, 0.70) 5%,
+        transparent 5%
+    );
+}
+
+/* Заряд 6% */
+#custom-battery.charge-6 {
+    background-image: linear-gradient(
+        to right,
+        rgba(231, 118, 118, 0.48) 0%,
+        rgba(231, 118, 118, 0.70) 6%,
+        transparent 6%
+    );
+}
+
+/* Заряд 7% */
+#custom-battery.charge-7 {
+    background-image: linear-gradient(
+        to right,
+        rgba(231, 120, 118, 0.48) 0%,
+        rgba(231, 120, 118, 0.70) 7%,
+        transparent 7%
+    );
+}
+
+/* Заряд 8% */
+#custom-battery.charge-8 {
+    background-image: linear-gradient(
+        to right,
+        rgba(231, 122, 118, 0.48) 0%,
+        rgba(231, 122, 118, 0.70) 8%,
+        transparent 8%
+    );
+}
+
+/* Заряд 9% */
+#custom-battery.charge-9 {
+    background-image: linear-gradient(
+        to right,
+        rgba(232, 123, 117, 0.48) 0%,
+        rgba(232, 123, 117, 0.70) 9%,
+        transparent 9%
+    );
+}
+
+/* Заряд 10% */
+#custom-battery.charge-10 {
+    background-image: linear-gradient(
+        to right,
+        rgba(232, 125, 117, 0.48) 0%,
+        rgba(232, 125, 117, 0.70) 10%,
+        transparent 10%
+    );
+}
+
+/* Заряд 11% */
+#custom-battery.charge-11 {
+    background-image: linear-gradient(
+        to right,
+        rgba(232, 127, 117, 0.48) 0%,
+        rgba(232, 127, 117, 0.70) 11%,
+        transparent 11%
+    );
+}
+
+/* Заряд 12% */
+#custom-battery.charge-12 {
+    background-image: linear-gradient(
+        to right,
+        rgba(232, 129, 117, 0.48) 0%,
+        rgba(232, 129, 117, 0.70) 12%,
+        transparent 12%
+    );
+}
+
+/* Заряд 13% */
+#custom-battery.charge-13 {
+    background-image: linear-gradient(
+        to right,
+        rgba(232, 131, 116, 0.48) 0%,
+        rgba(232, 131, 116, 0.70) 13%,
+        transparent 13%
+    );
+}
+
+/* Заряд 14% */
+#custom-battery.charge-14 {
+    background-image: linear-gradient(
+        to right,
+        rgba(233, 132, 116, 0.48) 0%,
+        rgba(233, 132, 116, 0.70) 14%,
+        transparent 14%
+    );
+}
+
+/* Заряд 15% */
+#custom-battery.charge-15 {
+    background-image: linear-gradient(
+        to right,
+        rgba(233, 134, 116, 0.48) 0%,
+        rgba(233, 134, 116, 0.70) 15%,
+        transparent 15%
+    );
+}
+
+/* Заряд 16% */
+#custom-battery.charge-16 {
+    background-image: linear-gradient(
+        to right,
+        rgba(233, 136, 116, 0.48) 0%,
+        rgba(233, 136, 116, 0.70) 16%,
+        transparent 16%
+    );
+}
+
+/* Заряд 17% */
+#custom-battery.charge-17 {
+    background-image: linear-gradient(
+        to right,
+        rgba(233, 138, 115, 0.48) 0%,
+        rgba(233, 138, 115, 0.70) 17%,
+        transparent 17%
+    );
+}
+
+/* Заряд 18% */
+#custom-battery.charge-18 {
+    background-image: linear-gradient(
+        to right,
+        rgba(233, 140, 115, 0.48) 0%,
+        rgba(233, 140, 115, 0.70) 18%,
+        transparent 18%
+    );
+}
+
+/* Заряд 19% */
+#custom-battery.charge-19 {
+    background-image: linear-gradient(
+        to right,
+        rgba(233, 142, 115, 0.48) 0%,
+        rgba(233, 142, 115, 0.70) 19%,
+        transparent 19%
+    );
+}
+
+/* Заряд 20% */
+#custom-battery.charge-20 {
+    background-image: linear-gradient(
+        to right,
+        rgba(234, 143, 114, 0.48) 0%,
+        rgba(234, 143, 114, 0.70) 20%,
+        transparent 20%
+    );
+}
+
+/* Заряд 21% */
+#custom-battery.charge-21 {
+    background-image: linear-gradient(
+        to right,
+        rgba(234, 145, 114, 0.48) 0%,
+        rgba(234, 145, 114, 0.70) 21%,
+        transparent 21%
+    );
+}
+
+/* Заряд 22% */
+#custom-battery.charge-22 {
+    background-image: linear-gradient(
+        to right,
+        rgba(234, 147, 114, 0.48) 0%,
+        rgba(234, 147, 114, 0.70) 22%,
+        transparent 22%
+    );
+}
+
+/* Заряд 23% */
+#custom-battery.charge-23 {
+    background-image: linear-gradient(
+        to right,
+        rgba(234, 149, 114, 0.48) 0%,
+        rgba(234, 149, 114, 0.70) 23%,
+        transparent 23%
+    );
+}
+
+/* Заряд 24% */
+#custom-battery.charge-24 {
+    background-image: linear-gradient(
+        to right,
+        rgba(234, 151, 113, 0.48) 0%,
+        rgba(234, 151, 113, 0.70) 24%,
+        transparent 24%
+    );
+}
+
+/* Заряд 25% */
+#custom-battery.charge-25 {
+    background-image: linear-gradient(
+        to right,
+        rgba(234, 152, 113, 0.48) 0%,
+        rgba(234, 152, 113, 0.70) 25%,
+        transparent 25%
+    );
+}
+
+/* Заряд 26% */
+#custom-battery.charge-26 {
+    background-image: linear-gradient(
+        to right,
+        rgba(235, 154, 113, 0.48) 0%,
+        rgba(235, 154, 113, 0.70) 26%,
+        transparent 26%
+    );
+}
+
+/* Заряд 27% */
+#custom-battery.charge-27 {
+    background-image: linear-gradient(
+        to right,
+        rgba(235, 156, 112, 0.48) 0%,
+        rgba(235, 156, 112, 0.70) 27%,
+        transparent 27%
+    );
+}
+
+/* Заряд 28% */
+#custom-battery.charge-28 {
+    background-image: linear-gradient(
+        to right,
+        rgba(235, 158, 112, 0.48) 0%,
+        rgba(235, 158, 112, 0.70) 28%,
+        transparent 28%
+    );
+}
+
+/* Заряд 29% */
+#custom-battery.charge-29 {
+    background-image: linear-gradient(
+        to right,
+        rgba(235, 160, 112, 0.48) 0%,
+        rgba(235, 160, 112, 0.70) 29%,
+        transparent 29%
+    );
+}
+
+/* Заряд 30% */
+#custom-battery.charge-30 {
+    background-image: linear-gradient(
+        to right,
+        rgba(235, 162, 112, 0.48) 0%,
+        rgba(235, 162, 112, 0.70) 30%,
+        transparent 30%
+    );
+}
+
+/* Заряд 31% */
+#custom-battery.charge-31 {
+    background-image: linear-gradient(
+        to right,
+        rgba(236, 163, 111, 0.48) 0%,
+        rgba(236, 163, 111, 0.70) 31%,
+        transparent 31%
+    );
+}
+
+/* Заряд 32% */
+#custom-battery.charge-32 {
+    background-image: linear-gradient(
+        to right,
+        rgba(236, 165, 111, 0.48) 0%,
+        rgba(236, 165, 111, 0.70) 32%,
+        transparent 32%
+    );
+}
+
+/* Заряд 33% */
+#custom-battery.charge-33 {
+    background-image: linear-gradient(
+        to right,
+        rgba(236, 167, 111, 0.48) 0%,
+        rgba(236, 167, 111, 0.70) 33%,
+        transparent 33%
+    );
+}
+
+/* Заряд 34% */
+#custom-battery.charge-34 {
+    background-image: linear-gradient(
+        to right,
+        rgba(236, 169, 110, 0.48) 0%,
+        rgba(236, 169, 110, 0.70) 34%,
+        transparent 34%
+    );
+}
+
+/* Заряд 35% */
+#custom-battery.charge-35 {
+    background-image: linear-gradient(
+        to right,
+        rgba(236, 171, 110, 0.48) 0%,
+        rgba(236, 171, 110, 0.70) 35%,
+        transparent 35%
+    );
+}
+
+/* Заряд 36% */
+#custom-battery.charge-36 {
+    background-image: linear-gradient(
+        to right,
+        rgba(236, 173, 110, 0.48) 0%,
+        rgba(236, 173, 110, 0.70) 36%,
+        transparent 36%
+    );
+}
+
+/* Заряд 37% */
+#custom-battery.charge-37 {
+    background-image: linear-gradient(
+        to right,
+        rgba(237, 174, 110, 0.48) 0%,
+        rgba(237, 174, 110, 0.70) 37%,
+        transparent 37%
+    );
+}
+
+/* Заряд 38% */
+#custom-battery.charge-38 {
+    background-image: linear-gradient(
+        to right,
+        rgba(237, 176, 109, 0.48) 0%,
+        rgba(237, 176, 109, 0.70) 38%,
+        transparent 38%
+    );
+}
+
+/* Заряд 39% */
+#custom-battery.charge-39 {
+    background-image: linear-gradient(
+        to right,
+        rgba(237, 178, 109, 0.48) 0%,
+        rgba(237, 178, 109, 0.70) 39%,
+        transparent 39%
+    );
+}
+
+/* Заряд 40% */
+#custom-battery.charge-40 {
+    background-image: linear-gradient(
+        to right,
+        rgba(237, 180, 109, 0.48) 0%,
+        rgba(237, 180, 109, 0.70) 40%,
+        transparent 40%
+    );
+}
+
+/* Заряд 41% */
+#custom-battery.charge-41 {
+    background-image: linear-gradient(
+        to right,
+        rgba(237, 182, 109, 0.48) 0%,
+        rgba(237, 182, 109, 0.70) 41%,
+        transparent 41%
+    );
+}
+
+/* Заряд 42% */
+#custom-battery.charge-42 {
+    background-image: linear-gradient(
+        to right,
+        rgba(238, 183, 108, 0.48) 0%,
+        rgba(238, 183, 108, 0.70) 42%,
+        transparent 42%
+    );
+}
+
+/* Заряд 43% */
+#custom-battery.charge-43 {
+    background-image: linear-gradient(
+        to right,
+        rgba(238, 185, 108, 0.48) 0%,
+        rgba(238, 185, 108, 0.70) 43%,
+        transparent 43%
+    );
+}
+
+/* Заряд 44% */
+#custom-battery.charge-44 {
+    background-image: linear-gradient(
+        to right,
+        rgba(238, 187, 108, 0.48) 0%,
+        rgba(238, 187, 108, 0.70) 44%,
+        transparent 44%
+    );
+}
+
+/* Заряд 45% */
+#custom-battery.charge-45 {
+    background-image: linear-gradient(
+        to right,
+        rgba(238, 189, 107, 0.48) 0%,
+        rgba(238, 189, 107, 0.70) 45%,
+        transparent 45%
+    );
+}
+
+/* Заряд 46% */
+#custom-battery.charge-46 {
+    background-image: linear-gradient(
+        to right,
+        rgba(238, 191, 107, 0.48) 0%,
+        rgba(238, 191, 107, 0.70) 46%,
+        transparent 46%
+    );
+}
+
+/* Заряд 47% */
+#custom-battery.charge-47 {
+    background-image: linear-gradient(
+        to right,
+        rgba(238, 193, 107, 0.48) 0%,
+        rgba(238, 193, 107, 0.70) 47%,
+        transparent 47%
+    );
+}
+
+/* Заряд 48% */
+#custom-battery.charge-48 {
+    background-image: linear-gradient(
+        to right,
+        rgba(239, 194, 107, 0.48) 0%,
+        rgba(239, 194, 107, 0.70) 48%,
+        transparent 48%
+    );
+}
+
+/* Заряд 49% */
+#custom-battery.charge-49 {
+    background-image: linear-gradient(
+        to right,
+        rgba(239, 196, 106, 0.48) 0%,
+        rgba(239, 196, 106, 0.70) 49%,
+        transparent 49%
+    );
+}
+
+/* Заряд 50% */
+#custom-battery.charge-50 {
+    background-image: linear-gradient(
+        to right,
+        rgba(239, 198, 106, 0.48) 0%,
+        rgba(239, 198, 106, 0.70) 50%,
+        transparent 50%
+    );
+}
+
+/* Заряд 51% */
+#custom-battery.charge-51 {
+    background-image: linear-gradient(
+        to right,
+        rgba(237, 198, 107, 0.48) 0%,
+        rgba(237, 198, 107, 0.70) 51%,
+        transparent 51%
+    );
+}
+
+/* Заряд 52% */
+#custom-battery.charge-52 {
+    background-image: linear-gradient(
+        to right,
+        rgba(234, 198, 108, 0.48) 0%,
+        rgba(234, 198, 108, 0.70) 52%,
+        transparent 52%
+    );
+}
+
+/* Заряд 53% */
+#custom-battery.charge-53 {
+    background-image: linear-gradient(
+        to right,
+        rgba(232, 199, 110, 0.48) 0%,
+        rgba(232, 199, 110, 0.70) 53%,
+        transparent 53%
+    );
+}
+
+/* Заряд 54% */
+#custom-battery.charge-54 {
+    background-image: linear-gradient(
+        to right,
+        rgba(229, 199, 111, 0.48) 0%,
+        rgba(229, 199, 111, 0.70) 54%,
+        transparent 54%
+    );
+}
+
+/* Заряд 55% */
+#custom-battery.charge-55 {
+    background-image: linear-gradient(
+        to right,
+        rgba(227, 199, 112, 0.48) 0%,
+        rgba(227, 199, 112, 0.70) 55%,
+        transparent 55%
+    );
+}
+
+/* Заряд 56% */
+#custom-battery.charge-56 {
+    background-image: linear-gradient(
+        to right,
+        rgba(224, 199, 113, 0.48) 0%,
+        rgba(224, 199, 113, 0.70) 56%,
+        transparent 56%
+    );
+}
+
+/* Заряд 57% */
+#custom-battery.charge-57 {
+    background-image: linear-gradient(
+        to right,
+        rgba(222, 200, 114, 0.48) 0%,
+        rgba(222, 200, 114, 0.70) 57%,
+        transparent 57%
+    );
+}
+
+/* Заряд 58% */
+#custom-battery.charge-58 {
+    background-image: linear-gradient(
+        to right,
+        rgba(219, 200, 116, 0.48) 0%,
+        rgba(219, 200, 116, 0.70) 58%,
+        transparent 58%
+    );
+}
+
+/* Заряд 59% */
+#custom-battery.charge-59 {
+    background-image: linear-gradient(
+        to right,
+        rgba(217, 200, 117, 0.48) 0%,
+        rgba(217, 200, 117, 0.70) 59%,
+        transparent 59%
+    );
+}
+
+/* Заряд 60% */
+#custom-battery.charge-60 {
+    background-image: linear-gradient(
+        to right,
+        rgba(215, 200, 118, 0.48) 0%,
+        rgba(215, 200, 118, 0.70) 60%,
+        transparent 60%
+    );
+}
+
+/* Заряд 61% */
+#custom-battery.charge-61 {
+    background-image: linear-gradient(
+        to right,
+        rgba(212, 201, 119, 0.48) 0%,
+        rgba(212, 201, 119, 0.70) 61%,
+        transparent 61%
+    );
+}
+
+/* Заряд 62% */
+#custom-battery.charge-62 {
+    background-image: linear-gradient(
+        to right,
+        rgba(210, 201, 120, 0.48) 0%,
+        rgba(210, 201, 120, 0.70) 62%,
+        transparent 62%
+    );
+}
+
+/* Заряд 63% */
+#custom-battery.charge-63 {
+    background-image: linear-gradient(
+        to right,
+        rgba(207, 201, 122, 0.48) 0%,
+        rgba(207, 201, 122, 0.70) 63%,
+        transparent 63%
+    );
+}
+
+/* Заряд 64% */
+#custom-battery.charge-64 {
+    background-image: linear-gradient(
+        to right,
+        rgba(205, 201, 123, 0.48) 0%,
+        rgba(205, 201, 123, 0.70) 64%,
+        transparent 64%
+    );
+}
+
+/* Заряд 65% */
+#custom-battery.charge-65 {
+    background-image: linear-gradient(
+        to right,
+        rgba(202, 202, 124, 0.48) 0%,
+        rgba(202, 202, 124, 0.70) 65%,
+        transparent 65%
+    );
+}
+
+/* Заряд 66% */
+#custom-battery.charge-66 {
+    background-image: linear-gradient(
+        to right,
+        rgba(200, 202, 125, 0.48) 0%,
+        rgba(200, 202, 125, 0.70) 66%,
+        transparent 66%
+    );
+}
+
+/* Заряд 67% */
+#custom-battery.charge-67 {
+    background-image: linear-gradient(
+        to right,
+        rgba(198, 202, 126, 0.48) 0%,
+        rgba(198, 202, 126, 0.70) 67%,
+        transparent 67%
+    );
+}
+
+/* Заряд 68% */
+#custom-battery.charge-68 {
+    background-image: linear-gradient(
+        to right,
+        rgba(195, 202, 128, 0.48) 0%,
+        rgba(195, 202, 128, 0.70) 68%,
+        transparent 68%
+    );
+}
+
+/* Заряд 69% */
+#custom-battery.charge-69 {
+    background-image: linear-gradient(
+        to right,
+        rgba(193, 203, 129, 0.48) 0%,
+        rgba(193, 203, 129, 0.70) 69%,
+        transparent 69%
+    );
+}
+
+/* Заряд 70% */
+#custom-battery.charge-70 {
+    background-image: linear-gradient(
+        to right,
+        rgba(190, 203, 130, 0.48) 0%,
+        rgba(190, 203, 130, 0.70) 70%,
+        transparent 70%
+    );
+}
+
+/* Заряд 71% */
+#custom-battery.charge-71 {
+    background-image: linear-gradient(
+        to right,
+        rgba(188, 203, 131, 0.48) 0%,
+        rgba(188, 203, 131, 0.70) 71%,
+        transparent 71%
+    );
+}
+
+/* Заряд 72% */
+#custom-battery.charge-72 {
+    background-image: linear-gradient(
+        to right,
+        rgba(185, 203, 132, 0.48) 0%,
+        rgba(185, 203, 132, 0.70) 72%,
+        transparent 72%
+    );
+}
+
+/* Заряд 73% */
+#custom-battery.charge-73 {
+    background-image: linear-gradient(
+        to right,
+        rgba(183, 204, 134, 0.48) 0%,
+        rgba(183, 204, 134, 0.70) 73%,
+        transparent 73%
+    );
+}
+
+/* Заряд 74% */
+#custom-battery.charge-74 {
+    background-image: linear-gradient(
+        to right,
+        rgba(180, 204, 135, 0.48) 0%,
+        rgba(180, 204, 135, 0.70) 74%,
+        transparent 74%
+    );
+}
+
+/* Заряд 75% */
+#custom-battery.charge-75 {
+    background-image: linear-gradient(
+        to right,
+        rgba(178, 204, 136, 0.48) 0%,
+        rgba(178, 204, 136, 0.70) 75%,
+        transparent 75%
+    );
+}
+
+/* Заряд 76% */
+#custom-battery.charge-76 {
+    background-image: linear-gradient(
+        to right,
+        rgba(176, 204, 137, 0.48) 0%,
+        rgba(176, 204, 137, 0.70) 76%,
+        transparent 76%
+    );
+}
+
+/* Заряд 77% */
+#custom-battery.charge-77 {
+    background-image: linear-gradient(
+        to right,
+        rgba(173, 204, 138, 0.48) 0%,
+        rgba(173, 204, 138, 0.70) 77%,
+        transparent 77%
+    );
+}
+
+/* Заряд 78% */
+#custom-battery.charge-78 {
+    background-image: linear-gradient(
+        to right,
+        rgba(171, 205, 140, 0.48) 0%,
+        rgba(171, 205, 140, 0.70) 78%,
+        transparent 78%
+    );
+}
+
+/* Заряд 79% */
+#custom-battery.charge-79 {
+    background-image: linear-gradient(
+        to right,
+        rgba(168, 205, 141, 0.48) 0%,
+        rgba(168, 205, 141, 0.70) 79%,
+        transparent 79%
+    );
+}
+
+/* Заряд 80% */
+#custom-battery.charge-80 {
+    background-image: linear-gradient(
+        to right,
+        rgba(166, 205, 142, 0.48) 0%,
+        rgba(166, 205, 142, 0.70) 80%,
+        transparent 80%
+    );
+}
+
+/* Заряд 81% */
+#custom-battery.charge-81 {
+    background-image: linear-gradient(
+        to right,
+        rgba(163, 205, 143, 0.48) 0%,
+        rgba(163, 205, 143, 0.70) 81%,
+        transparent 81%
+    );
+}
+
+/* Заряд 82% */
+#custom-battery.charge-82 {
+    background-image: linear-gradient(
+        to right,
+        rgba(161, 206, 144, 0.48) 0%,
+        rgba(161, 206, 144, 0.70) 82%,
+        transparent 82%
+    );
+}
+
+/* Заряд 83% */
+#custom-battery.charge-83 {
+    background-image: linear-gradient(
+        to right,
+        rgba(158, 206, 146, 0.48) 0%,
+        rgba(158, 206, 146, 0.70) 83%,
+        transparent 83%
+    );
+}
+
+/* Заряд 84% */
+#custom-battery.charge-84 {
+    background-image: linear-gradient(
+        to right,
+        rgba(156, 206, 147, 0.48) 0%,
+        rgba(156, 206, 147, 0.70) 84%,
+        transparent 84%
+    );
+}
+
+/* Заряд 85% */
+#custom-battery.charge-85 {
+    background-image: linear-gradient(
+        to right,
+        rgba(154, 206, 148, 0.48) 0%,
+        rgba(154, 206, 148, 0.70) 85%,
+        transparent 85%
+    );
+}
+
+/* Заряд 86% */
+#custom-battery.charge-86 {
+    background-image: linear-gradient(
+        to right,
+        rgba(151, 207, 149, 0.48) 0%,
+        rgba(151, 207, 149, 0.70) 86%,
+        transparent 86%
+    );
+}
+
+/* Заряд 87% */
+#custom-battery.charge-87 {
+    background-image: linear-gradient(
+        to right,
+        rgba(149, 207, 150, 0.48) 0%,
+        rgba(149, 207, 150, 0.70) 87%,
+        transparent 87%
+    );
+}
+
+/* Заряд 88% */
+#custom-battery.charge-88 {
+    background-image: linear-gradient(
+        to right,
+        rgba(146, 207, 152, 0.48) 0%,
+        rgba(146, 207, 152, 0.70) 88%,
+        transparent 88%
+    );
+}
+
+/* Заряд 89% */
+#custom-battery.charge-89 {
+    background-image: linear-gradient(
+        to right,
+        rgba(144, 207, 153, 0.48) 0%,
+        rgba(144, 207, 153, 0.70) 89%,
+        transparent 89%
+    );
+}
+
+/* Заряд 90% */
+#custom-battery.charge-90 {
+    background-image: linear-gradient(
+        to right,
+        rgba(141, 208, 154, 0.48) 0%,
+        rgba(141, 208, 154, 0.70) 90%,
+        transparent 90%
+    );
+}
+
+/* Заряд 91% */
+#custom-battery.charge-91 {
+    background-image: linear-gradient(
+        to right,
+        rgba(139, 208, 155, 0.48) 0%,
+        rgba(139, 208, 155, 0.70) 91%,
+        transparent 91%
+    );
+}
+
+/* Заряд 92% */
+#custom-battery.charge-92 {
+    background-image: linear-gradient(
+        to right,
+        rgba(137, 208, 156, 0.48) 0%,
+        rgba(137, 208, 156, 0.70) 92%,
+        transparent 92%
+    );
+}
+
+/* Заряд 93% */
+#custom-battery.charge-93 {
+    background-image: linear-gradient(
+        to right,
+        rgba(134, 208, 158, 0.48) 0%,
+        rgba(134, 208, 158, 0.70) 93%,
+        transparent 93%
+    );
+}
+
+/* Заряд 94% */
+#custom-battery.charge-94 {
+    background-image: linear-gradient(
+        to right,
+        rgba(132, 209, 159, 0.48) 0%,
+        rgba(132, 209, 159, 0.70) 94%,
+        transparent 94%
+    );
+}
+
+/* Заряд 95% */
+#custom-battery.charge-95 {
+    background-image: linear-gradient(
+        to right,
+        rgba(129, 209, 160, 0.48) 0%,
+        rgba(129, 209, 160, 0.70) 95%,
+        transparent 95%
+    );
+}
+
+/* Заряд 96% */
+#custom-battery.charge-96 {
+    background-image: linear-gradient(
+        to right,
+        rgba(127, 209, 161, 0.48) 0%,
+        rgba(127, 209, 161, 0.70) 96%,
+        transparent 96%
+    );
+}
+
+/* Заряд 97% */
+#custom-battery.charge-97 {
+    background-image: linear-gradient(
+        to right,
+        rgba(124, 209, 162, 0.48) 0%,
+        rgba(124, 209, 162, 0.70) 97%,
+        transparent 97%
+    );
+}
+
+/* Заряд 98% */
+#custom-battery.charge-98 {
+    background-image: linear-gradient(
+        to right,
+        rgba(122, 210, 164, 0.48) 0%,
+        rgba(122, 210, 164, 0.70) 98%,
+        transparent 98%
+    );
+}
+
+/* Заряд 99% */
+#custom-battery.charge-99 {
+    background-image: linear-gradient(
+        to right,
+        rgba(119, 210, 165, 0.48) 0%,
+        rgba(119, 210, 165, 0.70) 99%,
+        transparent 99%
+    );
+}
+
+/* Заряд 100% */
+#custom-battery.charge-100 {
+    background-image: linear-gradient(
+        to right,
+        rgba(117, 210, 166, 0.48) 0%,
+        rgba(117, 210, 166, 0.70) 100%,
+        transparent 100%
+    );
+}
