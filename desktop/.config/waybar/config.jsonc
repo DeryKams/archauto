@@ -41,7 +41,8 @@
     // Показываем полный текст при наведении
     "tooltip": true,
     // ЛКМ открывает историю через Walker
-    "on-click": "walker --modules clipboard",
+    // ЛКМ открывает историю, только если Walker установлен
+    "on-click": "sh -c 'if command -v walker >/dev/null 2>&1; then exec walker --provider clipboard; fi'",
     // Не запускаем дополнительное обновление после клика
     "exec-on-event": false
   },

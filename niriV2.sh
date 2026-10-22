@@ -17,6 +17,15 @@ USER_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
 }
 DOTFILES="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+# Проверяем комплект модулей до изменения системных настроек.
+for module in journal sysctl pacman wine kitty; do
+    module_path="$DOTFILES/lib/$module.sh"
+    if [[ ! -f "$module_path" || ! -r "$module_path" ]]; then
+        echo "Обязательный модуль отсутствует или недоступен: $module_path" >&2
+        exit 1
+    fi
+done
+
 # Проверки
 [[ -d "$DOTFILES/desktop/.config" && -x "$DOTFILES/desktop/.local/bin/arch-waylock" &&
     -f "$DOTFILES/gdm/90-apple-dark" && -f "$DOTFILES/gdm/profile" ]] || {
@@ -31,39 +40,20 @@ fi
 
 
 #Ограничение журнала systemd
-if [[ -f "./lib/journal.sh" ]]; then
-    source "./lib/journal.sh"
-else
-    echo "Модуль ограничения журнала отсутствует в папке lib или нет доступа" >&2
-fi
+source "$DOTFILES/lib/journal.sh"
 
-#Включение trim
-    systemctl enable --now fstrim.timer
-    fstrim -va
-    echo "Статус службы fstrim"
-    systemctl status fstrim.timer
+# Разовый TRIM; периодический запуск включается ниже через fstrim.timer.
+fstrim -va
 
 
 # Настройка swap и cache pressure в systemctl
-if [[ -f "./lib/sysctl.sh" ]]; then
-    source "./lib/sysctl.sh"
-else
-    echo "Модуль настройки sysctl отсутствует в папке lib или нет доступа" >&2
-fi
+source "$DOTFILES/lib/sysctl.sh"
 
 # Настройка ILoveCandy, Color и ParallelDownloads в pacman
-if [[ -f "./lib/pacman.sh" ]]; then
-    source "./lib/pacman.sh"
-else
-    echo "Модуль настройки pacman отсутствует в папке lib или нет доступа" >&2
-fi
+source "$DOTFILES/lib/pacman.sh"
 
 # Установка Wine для windows приложений
-if [[ -f "./lib/wine.sh" ]]; then
-    source "./lib/wine.sh"
-else
-    echo "Модуль настройки wine отсутствует в папке lib или нет доступа" >&2
-fi
+source "$DOTFILES/lib/wine.sh"
 
 DESKTOP_PACKAGES=(
     niri waylock gdm dconf swayidle swaync kitty waybar fuzzel wl-clipboard cantarell-fonts
@@ -72,7 +62,7 @@ DESKTOP_PACKAGES=(
     pipewire pipewire-pulse wireplumber
     stow git fzf neovim rust imagemagick
     pipewire-alsa grim slurp papirus-icon-theme
-    pcmanfm-qt gvfs gdm-settings
+    pcmanfm-qt gvfs
 )
 
 
@@ -150,11 +140,7 @@ do
 done
 
 # Установка kitty
-if [[ -f "./lib/kitty.sh" ]]; then
-    source "./lib/kitty.sh"
-else
-    echo "Модуль настройки kitty отсутствует в папке lib или нет доступа" >&2
-fi
+source "$DOTFILES/lib/kitty.sh"
 
 skip_aur=false
 preinstalled=false
@@ -192,7 +178,7 @@ runuser -u "$SUDO_USER" -- \
 sh -c 'cd "$1" && stow --ignore="(^|/)(kitty|niri\.service\.wants|\.DS_Store|\._[^/]*)($|/)" -d "$2" -t "$1" desktop' _ "$USER_HOME" "$DOTFILES"
 runuser -u "$SUDO_USER" -- env NIRI_CONFIG="$USER_HOME/.config/niri/config.kdl" niri validate
 
-# Системная служба — root
+# Включаем GDM на следующую загрузку, не запуская графический вход во время установки.
 systemctl enable gdm.service
 install -Dm644 "$DOTFILES/gdm/90-apple-dark" /etc/dconf/db/gdm.d/90-apple-dark
 if [[ ! -e /etc/dconf/profile/gdm ]]; then
@@ -239,21 +225,7 @@ chown -h "$SUDO_USER:" \
 chown "$SUDO_USER:" \
 "$USER_SYSTEMD/niri.service.wants"
 
-#включение профилей производительности
-systemctl unmask power-profiles-daemon.service
-systemctl enable power-profiles-daemon.service #Запуск при старте системы
-systemctl start power-profiles-daemon.service
-echo "status power-profiles-daemon.service"
-systemctl status power-profiles-daemon.service #Чтобы убедиться, что сервис запущен
-
-
-
 pacman -S --noconfirm --needed openresolv
-systemctl enable systemd-resolved.service
-systemctl start systemd-resolved.service
-
-# Перезапускаем панель
-systemctl --user restart waybar.service
 
 if [[ "$skip_aur" == false ]]; then
     # Собираем paru под текущую libalpm: готовый paru-bin может быть несовместим.
@@ -280,7 +252,7 @@ if [[ "$skip_aur" == false ]]; then
     nohang-git minq-ananicy-git stacer-bin \
     php-codesniffer-phpcsutils php-codesniffer-phpcsextra \
     visual-studio-code-bin fastfetch-git \
-    carbonyl
+    carbonyl gdm-settings
     
     
     # В chroot пользовательский systemd ещё не запущен: подготовить unit офлайн.
@@ -329,17 +301,17 @@ enable_service(){
     
 }
 
-# Добавить
-# power-profiles-daemon.service — строки 233–238.
-# systemd-resolved.service — строки 243–244.
-# gdm.service — строка 187.
-# fstrim.timer — строка 15.
+# Снимаем маску перед включением службы в общем цикле.
+systemctl unmask power-profiles-daemon.service
 
 # проверяем статусы служб
 #Объявляем массив для служб
 # -a - объявляем, что это массив
 # -r - объявляем, что массив является неизменяемым, то есть только для чтения
 declare -a LIST_SERVICE_CHECK=(
+    "power-profiles-daemon.service"
+    "systemd-resolved.service"
+    "fstrim.timer"
     "reflector.service"
     "reflector.timer"
     "fail2ban.service"
@@ -359,54 +331,16 @@ for item in "${LIST_SERVICE_CHECK[@]}"; do
     # enable_service - функция, которую мы ранее определили и которая берет элемент item и выполняет операции
 done
 
-
-# настройка reflector
-reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
-
-
-
 # Устанавливаем Zsh и системные плагины, если они отсутствуют
 pacman -S --needed --noconfirm \
     zsh \
     zsh-completions zsh-syntax-highlighting \
     zsh-autosuggestions curl
 
-# Устанавливаем Oh My Zsh, Powerlevel10k и дополнительные плагины
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Проверяем запуск через sudo от обычного пользователя
-if [[ "$EUID" -ne 0 || -z "${SUDO_USER:-}" || "$SUDO_USER" == "root" ]]; then
-    echo "Ошибка: запустите скрипт через sudo от обычного пользователя." >&2
-    exit 1
-fi
-
-# Определяем пользователя и его домашний каталог
-USER_NAME="$SUDO_USER"
-
-# Определяем расположение текущего установочного скрипта
-# SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-
-# # Определяем расположение исходной конфигурации
-# SOURCE_CONFIG="$SCRIPT_DIR/desktop/.config"
-
-# # Проверяем наличие исходной конфигурации
-# if [[ ! -d "$SOURCE_CONFIG" ]]; then
-#     echo "Ошибка: каталог $SOURCE_CONFIG не найден." >&2
-#     exit 1
-# fi
-
-# Устанавливаем Zsh и системные плагины, если они отсутствуют
-pacman -S --needed --noconfirm \
-    zsh git fzf powerline-fonts \
-    zsh-completions zsh-syntax-highlighting \
-    zsh-autosuggestions curl
-
 # Устанавливаем пользовательские компоненты Oh My Zsh
-runuser -u "$USER_NAME" -- bash <<'BASH'
+runuser -u "$SUDO_USER" -- env HOME="$USER_HOME" bash <<'BASH'
     set -euo pipefail
-
-    # Получаем путь к исходной конфигурации из аргумента
+    cd -- "$HOME"
 
     # Определяем каталоги установки Oh My Zsh
     ZSH_DIR="$HOME/.oh-my-zsh"
@@ -450,8 +384,8 @@ BASH
 ZSH_BIN="$(command -v zsh)"
 
 # Назначаем Zsh оболочкой пользователя, если она ещё не используется
-if [[ "$(getent passwd "$USER_NAME" | cut -d: -f7)" != "$ZSH_BIN" ]]; then
-    chsh -s "$ZSH_BIN" "$USER_NAME"
+if [[ "$(getent passwd "$SUDO_USER" | cut -d: -f7)" != "$ZSH_BIN" ]]; then
+    chsh -s "$ZSH_BIN" "$SUDO_USER"
 fi
 
 
@@ -459,5 +393,8 @@ fi
 pacman -S --noconfirm --needed flatpak flatpak-kcm flatpak-xdg-utils
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install -y io.github.Qalculate.qalculate-qt org.telegram.desktop
+
+# настройка reflector
+reflector --country 'Russia' --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 
 echo "Установка завершена"

@@ -8,8 +8,17 @@ if [[ $EUID -ne 0 ]]; then
     return 1 2>/dev/null
 fi
 
-# Путь до папки пользователя
-USER_HOME=$(eval echo ~$SUDO_USER)
+if [[ -z "${SUDO_USER:-}" || "$SUDO_USER" == "root" ]]; then
+    echo "Ошибка: запустите установщик через sudo от обычного пользователя" >&2
+    return 1
+fi
+
+# getent учитывает домашний каталог из учётной записи, без вычисления через eval.
+USER_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+if [[ -z "$USER_HOME" || ! -d "$USER_HOME" ]]; then
+    echo "Домашний каталог пользователя $SUDO_USER не найден" >&2
+    return 1
+fi
 
 
 echo "Installing ranger and configuring it for image previews in kitty terminal..."
@@ -17,7 +26,11 @@ echo "Installing ranger and configuring it for image previews in kitty terminal.
 # Устанавливаем пакеты для kitty. Если они уже установлены, то pacman их пропускает
 pacman -S --needed --noconfirm ranger kitty extra/kitty-shell-integration extra/kitty-terminfo extra/python-pillow extra/wl-clipboard
 
-# Добавляем конфигурацию к kitty
+# Каталоги, перенаправления и sed выполняются от пользователя, чтобы не создавать root-owned файлы.
+runuser -u "$SUDO_USER" -- env HOME="$USER_HOME" XDG_CONFIG_HOME="$USER_HOME/.config" bash <<'BASH'
+set -euo pipefail
+USER_HOME="$HOME"
+cd -- "$USER_HOME"
 
 # Путь к конфигу Kitty для пользователя
 KITTY_CONF="$USER_HOME/.config/kitty/kitty.conf"
@@ -76,33 +89,7 @@ shell zsh
 shell_integration enabled
 EOF
 
-# Исправляем права доступа, так как файл создан от root
-chown "$SUDO_USER:$(id -gn "$SUDO_USER")" "$KITTY_CONF"
 echo "Конфигурация Kitty записана в $KITTY_CONF"
-# Добавляем конфигурацию к kitty
-
-
-#Получаем домашнюю директорию пользователя
-if [[ $EUID -eq 0 ]] && [[ -n "$SUDO_USER" ]]; then
-    #$EUID - переменная, которая содержит ID текущего пользователя
-    # -eq - аналог == для других языков
-    # 0 - это ID суперпользователя (root)
-    # [[ $EUID -eq 0 ]] - условие: если текущий пользователь - суперпользователь
-    # && - логическое "и"; оба условия должны быть истинными
-    # -n - проверка что строка не пустая
-    # $SUDO_USER - переменная в которой храниться имя пользователя, который  запустил команду через sudo
-    # [[ -n "$SUDO_USER" ]] - проверяется, что в переменной пользователя, который запустил через sudo, не пустая
-    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
-    # getent - команда, которая позволяет получать записи из системных баз данных Linux, к примеру passwd, group или hosts
-    # Синтаксис: getent <база данных> <ключ> - getent passwd "$SUDO_USER"
-    # getent passwd "$SUDO_USER" - ищем в справочнике passwd пользователя, который запустил команду через sudo
-    # | (pipe) — это оператор, который перенаправляет вывод одной команды (getent) на вход другой
-    # cut - вывод команды в поток
-    # -d: - разделитель, который используется в файле passwd (записи разделены двоеточиями)
-    # -f6 - вывод шестого поля, которое соответствует домашней директории пользователя
-else
-    USER_HOME="$HOME"
-fi
 
 #домашняя директория пользователя содержиться в $USER_HOME
 echo "Домашняя директория пользователя: $USER_HOME"
@@ -111,8 +98,7 @@ echo "Домашняя директория пользователя: $USER_HOME
 echo "Copying ranger configuration files..."
 
 mkdir -p "$USER_HOME/.config/ranger"
-chown "$SUDO_USER":"$(id -gn "$SUDO_USER")" "$USER_HOME/.config/ranger"
-sudo -u "$SUDO_USER" ranger --copy-config=all
+ranger --copy-config=all
 
 echo "Ranger configuration"
 
@@ -122,11 +108,11 @@ metpreview="kitty"
 # Проверка существования файла rc.conf
 if [[ -f "$rcconf" ]]; then
     # Настройка preview_images
-    if grep -q "^set preview_images" "$rcconf"; then
-        if grep -q "^set preview_images true" "$rcconf"; then
+    if grep -Eq "^set[[:space:]]+preview_images([[:space:]]|$)" "$rcconf"; then
+        if grep -Eq "^set[[:space:]]+preview_images[[:space:]]+true[[:space:]]*$" "$rcconf"; then
             echo "set preview_images true already exists in $rcconf."
         else
-            sed -i 's/^set preview_images.*/set preview_images true/' "$rcconf"
+            sed -i -E 's/^set[[:space:]]+preview_images([[:space:]].*)?$/set preview_images true/' "$rcconf"
             echo "Updated set preview_images to true in $rcconf."
         fi
     else
@@ -135,11 +121,11 @@ if [[ -f "$rcconf" ]]; then
     fi
     
     # Настройка preview_images_method
-    if grep -q "^set preview_images_method" "$rcconf"; then
-        if grep -q "^set preview_images_method $metpreview" "$rcconf"; then
+    if grep -Eq "^set[[:space:]]+preview_images_method([[:space:]]|$)" "$rcconf"; then
+        if grep -Eq "^set[[:space:]]+preview_images_method[[:space:]]+$metpreview[[:space:]]*$" "$rcconf"; then
             echo "set preview_images_method $metpreview already exists in $rcconf."
         else
-            sed -i "s/^set preview_images_method.*/set preview_images_method $metpreview/" "$rcconf"
+            sed -i -E "s/^set[[:space:]]+preview_images_method([[:space:]].*)?$/set preview_images_method $metpreview/" "$rcconf"
             echo "Updated set preview_images_method to $metpreview in $rcconf."
         fi
     else
@@ -151,6 +137,7 @@ if [[ -f "$rcconf" ]]; then
 else
     echo "Error: $rcconf not found."
 fi
+BASH
 
 # Проверить нужно файлы
 # ~/.config/kitty/kitty.conf

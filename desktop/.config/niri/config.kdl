@@ -48,6 +48,53 @@ hotkey-overlay {
     skip-at-startup
 }
 
+// Переключатель недавно активных окон (Alt+Tab)
+recent-windows {
+    // Не включаем промежуточные окна в историю фокуса слишком быстро
+    debounce-ms 750
+
+    // Задержка показа меню: быстрый Alt+Tab переключает без вспышки интерфейса
+    open-delay-ms 150
+
+    // Оформление выбранной миниатюры
+    highlight {
+        // Полупрозрачное голубое выделение
+        active-color "#73acfa55"
+
+        // Выделение окна, требующего внимания
+        urgent-color "#e6a3ad99"
+
+        // Пространство вокруг выбранной миниатюры
+        padding 20
+
+        // Скругление подсветки
+        corner-radius 18
+    }
+
+    // Размеры миниатюр окон
+    previews {
+        max-height 420
+        max-scale 0.55
+    }
+
+    // Управление переключателем
+    binds {
+        // Все окна на всех рабочих столах и мониторах
+        Alt+Tab { next-window scope="all"; }
+        Alt+Shift+Tab { previous-window scope="all"; }
+
+        // Переключение между окнами одного приложения
+        Alt+grave { next-window filter="app-id"; }
+        Alt+Shift+grave { previous-window filter="app-id"; }
+
+        // Сохраняем стандартные сочетания через Mod
+        Mod+Tab { next-window; }
+        Mod+Shift+Tab { previous-window; }
+        Mod+grave { next-window filter="app-id"; }
+        Mod+Shift+grave { previous-window filter="app-id"; }
+    }
+}
+
 binds {
     // KDE Meta = Super (клавиша Windows). Super не меняется на Alt в nested-сессии Niri.
     // Источники: https://docs.kde.org/trunk_kf6/en/khelpcenter/fundamentals/kbd.html
@@ -62,10 +109,6 @@ binds {
     // Открывает графическое меню горячих клавиш Niri
     Mod+Shift+Slash repeat=false {
         show-hotkey-overlay;
-    }
-    // Открывает графическую историю буфера обмена в Walker
-    Mod+V repeat=false {
-        spawn "walker" "--modules" "clipboard";
     }
 
     // Запуск приложений: Kitty вместо Konsole, Walker вместо KRunner.
@@ -137,8 +180,6 @@ binds {
 
     // Возможности KDE без прямого эквивалента в Niri 26.04:
     // Meta отдельно — меню приложений; нужен обработчик одиночного модификатора.
-    // Alt+Tab / Alt+Shift+Tab — обход окон по истории с переключателем KWin.
-    // focus-window-previous переключает только последнее окно и не заменяет Alt+Tab.
     // Alt+F3 — меню операций окна KWin.
     // Super+Page_Down — свернуть окно; у Niri нет состояния minimized.
     // Super+BackSpace — восстановить геометрию окна после quick tile/maximize.

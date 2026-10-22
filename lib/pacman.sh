@@ -9,52 +9,21 @@ fi
 # Путь до конфига Pacman
 pacman_config="/etc/pacman.conf"
 
-# Настраиваем количество параллельных загрузок пакетов в pacman.conf
-new_parallel_dow="10"
-
-if grep -q "^ParallelDownloads" "${pacman_config}"; then
-
-    sed -i "s/^ParallelDownloads.*/ParallelDownloads = ${new_parallel_dow}/" "${pacman_config}"
-
-    echo "Обновлено: ParallelDownloads = ${new_parallel_dow}"
-else
-    # Если параметра нет, добавляем его в конец файла
-
-    echo "ParallelDownloads = ${new_parallel_dow}" >> "${pacman_config}"
-
-    echo "Добавлено: ParallelDownloads = ${new_parallel_dow}"
-fi
-# Настраиваем количество параллельных загрузок пакетов в pacman.conf
-
-# Настраиваем Color для pacman
-if grep -q "^#Color" "${pacman_config}"; then
-    
-    sed -i "s/#Color/Color/" "${pacman_config}"
-    echo "Color был включен"
-else
-    if grep -q "^Color" "${pacman_config}"; then
-        
-        echo "Color уже включен"
-    else
-        echo "Color" >> "${pacman_config}"
-        
-    fi
-fi
-# Настраиваем Color для pacman
-
-# Настраиваем ILoveCandy для pacman
-
-if grep -q "^ILoveCandy" "${pacman_config}"; then
-    #! инвертирует условие
-    #-v -инвертирует условие. То есть если НЕ, то условие выполняется
-    echo "ILoveCandy уже включен"
-else
-    
-    sed -i "/^Color/a ILoveCandy" "${pacman_config}"
-    #-i редактирует файл на месте
-    # a/ камманда append в sed, вставляет новую сроку, после найденной строки
-    #шаблон вставки: "/что ищем/a что вставляем" "$file"
+if ! grep -Eq '^[[:space:]]*\[options\][[:space:]]*$' "$pacman_config"; then
+    echo "Секция [options] не найдена в $pacman_config; файл не изменён" >&2
+    return 1
 fi
 
+# Удаляем прежние активные и закомментированные значения только в [options].
+# Вставка после заголовка работает и при отсутствии параметров; повторный запуск не создаёт дублей.
+sed -i -E '
+/^[[:space:]]*\[options\][[:space:]]*$/,/^[[:space:]]*\[/ {
+    /^[[:space:]]*#?[[:space:]]*(ParallelDownloads|Color|ILoveCandy)([[:space:]=]|$)/d
+    /^[[:space:]]*\[options\][[:space:]]*$/a\
+ParallelDownloads = 10\
+Color\
+ILoveCandy
+}
+' "$pacman_config"
 
-# Настраиваем ILoveCandy для pacman
+echo "Настроена секция [options]: ParallelDownloads = 10, Color, ILoveCandy"
