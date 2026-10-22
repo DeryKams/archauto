@@ -150,17 +150,6 @@ done
 # Установка kitty
 source "$DOTFILES/lib/kitty.sh"
 
-skip_aur=false
-preinstalled=false
-for option in "$@"; do
-    case $option in
-        --skip-aur) skip_aur=true ;;
-        --preinstalled) preinstalled=true ;;
-        *) echo "Использование: $0 [--skip-aur] [--preinstalled]" >&2; exit 2 ;;
-    esac
-done
-
-
 # Сохраняем существующий .zshrc, если он не подключён к нашему репозиторию
 ZSHRC_SOURCE="$DOTFILES/desktop/.zshrc"
 ZSHRC_TARGET="$USER_HOME/.zshrc"
@@ -235,7 +224,6 @@ chown "$SUDO_USER:" \
 
 pacman -S --noconfirm --needed openresolv
 
-if [[ "$skip_aur" == false ]]; then
     # Собираем paru под текущую libalpm: готовый paru-bin может быть несовместим.
     if ! paru --version >/dev/null 2>&1; then
         PARU_BUILD_DIR="$(mktemp -d "$USER_HOME/paru-build.XXXXXX")"
@@ -279,7 +267,6 @@ EOF
     "$USER_SYSTEMD/niri.service.wants/elephant.service"
     chown "$SUDO_USER:" "$USER_SYSTEMD/elephant.service"
     chown -h "$SUDO_USER:" "$USER_SYSTEMD/niri.service.wants/elephant.service"
-fi
 
 
 

@@ -15,7 +15,7 @@ gi.require_version('GtkLayerShell', '0.1')
 from gi.repository import Gdk, GLib, Gtk, GtkLayerShell
 
 CONFIG_DIR = Path(__file__).resolve().parent
-BATTERY_SOURCE = CONFIG_DIR.parent / 'waybar' / 'scripts' / 'battery-status.py'
+BATTERY_SOURCE = CONFIG_DIR.parent / 'scripts' / 'battery-status.py'
 PROFILE_NAMES = {
     'power-saver': 'Экономия',
     'balanced': 'Баланс',

@@ -117,9 +117,8 @@ binds {
     Alt+Space repeat=false { spawn-sh "if command -v walker >/dev/null 2>&1; then exec walker; else exec fuzzel; fi"; }
     Alt+F2 repeat=false { spawn-sh "if command -v walker >/dev/null 2>&1; then exec walker; else exec fuzzel; fi"; }
 
-    // История буфера: Walker + elephant-clipboard вместо Klipper.
-    // При --skip-aur история недоступна; wl-clipboard сам историю не хранит.
-    Super+V repeat=false { spawn-sh "if command -v walker >/dev/null 2>&1; then exec walker --provider clipboard; fi"; }
+    // История буфера: общий запуск Walker и диагностика Elephant.
+    Super+V repeat=false { spawn-sh "$HOME/.config/waybar/scripts/clipboard-history.sh"; }
 
     // Окна: максимизация окна, не fullscreen и не растягивание всей колонки.
     Alt+F4 repeat=false { close-window; }

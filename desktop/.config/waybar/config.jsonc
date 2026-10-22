@@ -26,7 +26,7 @@
   ],
   // Предпросмотр текущего буфера обмена
   "custom/clipboard": {
-    // Скрипт получает последний скопированный текст
+    // Событийный предпросмотр текущего буфера
     "exec": "$HOME/.config/waybar/scripts/clipboard-preview.sh",
     // Скрипт возвращает JSON с текстом и подсказкой
     "return-type": "json",
@@ -38,11 +38,10 @@
     "restart-interval": 5,
     // Экранируем специальные символы скопированного текста
     "escape": true,
-    // Показываем полный текст при наведении
+    // Подсказка отдельно ограничена обработчиком
     "tooltip": true,
-    // ЛКМ открывает историю через Walker
-    // ЛКМ открывает историю, только если Walker установлен
-    "on-click": "sh -c 'if command -v walker >/dev/null 2>&1; then exec walker --provider clipboard; fi'",
+    // Общий запуск истории с диагностикой отсутствующего backend
+    "on-click": "$HOME/.config/waybar/scripts/clipboard-history.sh",
     // Не запускаем дополнительное обновление после клика
     "exec-on-event": false
   },
@@ -75,7 +74,7 @@
     // Используем tooltip из Python-скрипта
     "tooltip": true,
     // Открываем или закрываем GTK-панель питания
-    "on-click": "python3 $HOME/.config/power-widget/panel.py",
+    "on-click": "python3 $HOME/.config/waybar/power-widget/panel.py",
     // Не запускаем повторное чтение батареи сразу после клика
     "exec-on-event": false
   },

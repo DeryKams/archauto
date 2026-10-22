@@ -71,6 +71,16 @@
     padding: 10px;
 }
 
+/* Clipboard uses the upstream one-line, ellipsized item template. */
+.clipboard .item-box {
+    padding: 6px 9px;
+}
+
+.clipboard .item-text,
+.clipboard .item-subtext {
+    font-size: 12px;
+}
+
 child:hover .item-box,
 row:hover .item-box {
     background: @hover_color;
@@ -101,6 +111,11 @@ row:selected .item-box {
 .preview {
     border: 1px solid @border_color;
     border-radius: 12px;
+}
+
+/* Keep the separate preview visually compact; its actual size needs GTK testing. */
+.preview-box {
+    font-size: 12px;
 }
 
 .preview .large-icons {

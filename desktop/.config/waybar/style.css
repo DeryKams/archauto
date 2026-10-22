@@ -1,3 +1,5 @@
+/* Подключаем виджет батареи */
+@import url("battery-fill.css");
 /* Основные настройки */
 * {
     font-family: "Cantarell", sans-serif;
@@ -314,15 +316,12 @@ menu separator {
 /* Виджет последнего скопированного текста */
 #custom-clipboard {
     color: #edf2fa;
-    background: #25344a;
-    border: 1px solid #34445a;
-    border-radius: 8px;
+    background: rgba(25, 38, 56, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.40);
+    border-radius: 10px;
 
-    /* Минимальная ширина поля */
-    min-width: 128px;
-
-    /* Размеры и расположение */
-    padding: 0;
+    /* Короткий текст и малые отступы уменьшают ширину; точный предел проверяется в GTK. */
+    padding: 0 4px;
     margin: 4px 3px;
 
     font-family: Cantarell, sans-serif;
@@ -333,7 +332,14 @@ menu separator {
 /* Подсветка при наведении */
 #custom-clipboard:hover {
     color: #ffffff;
-    background: #344d70;
+    background: rgba(255, 255, 255, 0.12);
     border-color: #73acfa;
 }
-@import url("battery-fill.css");
+
+#custom-clipboard.error {
+    border-color: #e6a3ad;
+}
+
+#custom-clipboard.empty {
+    color: #aebdd0;
+}
